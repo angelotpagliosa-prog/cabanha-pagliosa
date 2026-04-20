@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cabanha Pagliosa - Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .alerta-card {
+      background: var(--branco);
+      border-radius: var(--raio);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--sombra);
+      border-left: 4px solid var(--amarelo);
+      margin-bottom: 8px;
+      text-decoration: none;
+      color: inherit;
+      transition: var(--transicao);
+    }
+    .alerta-card:hover { box-shadow: var(--sombra-hover); }
+    .alerta-icone { font-size: 1.5rem; }
+    .alerta-texto strong { display: block; font-size: 0.9rem; }
+    .alerta-texto span { font-size: 0.8rem; color: var(--cinza); }
+    .alerta-card.vermelho { border-left-color: var(--vermelho); }
+    .alerta-card.verde { border-left-color: var(--verde); }
+
+    .atividade-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--cinza-muito-claro);
+      font-size: 0.85rem;
+    }
+    .atividade-item:last-child { border-bottom: none; }
+    .atividade-icone { font-size: 1.2rem; width: 28px; text-align: center; }
+    .atividade-info strong { display: block; }
+    .atividade-info span { color: var(--cinza); font-size: 0.8rem; }
+
+    .boas-vindas {
+      background: linear-gradient(135deg, var(--verde-escuro), var(--verde-medio));
+      color: var(--branco);
+      border-radius: var(--raio);
+      padding: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .boas-vindas h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; }
+    .boas-vindas p { font-size: 0.9rem; opacity: 0.85; }
+    .boas-vindas-num { text-align: right; }
+    .boas-vindas-num .num { font-size: 3rem; font-weight: 900; line-height: 1; }
+    .boas-vindas-num .label { font-size: 0.85rem; opacity: 0.8; }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐄</span>
+      <h1>Cabanha Pagliosa</h1>
+      <span>Sistema de Gestão do Rebanho</span>
+    </div>
+    <div class="sidebar-nav">
+      <span class="sidebar-secao">Principal</span>
+      <a href="index.html" class="ativo"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="animais.html"><span class="nav-icon">🐄</span> Animais</a>
+      <a href="locais.html"><span class="nav-icon">🗺️</span> Locais e Lotes</a>
+      <a href="movimentacoes.html"><span class="nav-icon">🔄</span> Movimentações</a>
+
+      <span class="sidebar-secao">Reprodução</span>
+      <a href="reproducao.html"><span class="nav-icon">🧬</span> Coberturas e IATF</a>
+      <a href="nascimentos.html"><span class="nav-icon">🐣</span> Nascimentos</a>
+
+      <span class="sidebar-secao">Saúde</span>
+      <a href="sanitario.html"><span class="nav-icon">💉</span> Manejo Sanitário</a>
+
+      <span class="sidebar-secao">Administrativo</span>
+      <a href="financeiro.html"><span class="nav-icon">💰</span> Financeiro</a>
+      <a href="vendas.html"><span class="nav-icon">🏷️</span> Vendas</a>
+      <a href="associacoes.html"><span class="nav-icon">📋</span> Associações</a>
+
+      <span class="sidebar-secao">Sistema</span>
+      <a href="configuracoes.html"><span class="nav-icon">⚙️</span> Configurações</a>
+    </div>
+  </nav>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo">📊 Dashboard</div>
+      <div class="topbar-acoes">
+        <span id="data-hoje" style="font-size:0.85rem;color:var(--cinza)"></span>
+      </div>
+    </div>
+
+    <div class="pagina">
+
+      <!-- Boas-vindas -->
+      <div class="boas-vindas">
+        <div>
+          <h2>🐄 Cabanha Pagliosa</h2>
+          <p>Bem-vindo ao sistema de gestão do rebanho</p>
+        </div>
+        <div class="boas-vindas-num">
+          <div class="num" id="total-cabecas">0</div>
+          <div class="label">cabeças ativas</div>
+        </div>
+      </div>
+
+      <!-- Stats Principais -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card verde">
+          <span class="stat-icone">🐄</span>
+          <span class="stat-valor" id="stat-ativos">0</span>
+          <span class="stat-label">Animais Ativos</span>
+          <span class="stat-sub" id="stat-machos-femeas">-</span>
+        </div>
+        <div class="stat-card azul">
+          <span class="stat-icone">🤰</span>
+          <span class="stat-valor" id="stat-prenhas">0</span>
+          <span class="stat-label">Prenhas</span>
+          <span class="stat-sub" id="stat-proximos-partos">-</span>
+        </div>
+        <div class="stat-card amarelo">
+          <span class="stat-icone">🐣</span>
+          <span class="stat-valor" id="stat-nascimentos">0</span>
+          <span class="stat-label">Nascimentos no Mês</span>
+        </div>
+        <div class="stat-card vermelho">
+          <span class="stat-icone">💉</span>
+          <span class="stat-valor" id="stat-sanitarios">0</span>
+          <span class="stat-label">Manejos Pendentes</span>
+        </div>
+        <div class="stat-card verde">
+          <span class="stat-icone">💰</span>
+          <span class="stat-valor" id="stat-receitas">R$ 0</span>
+          <span class="stat-label">Receitas</span>
+        </div>
+        <div class="stat-card marrom">
+          <span class="stat-icone">📉</span>
+          <span class="stat-valor" id="stat-despesas">R$ 0</span>
+          <span class="stat-label">Despesas</span>
+        </div>
+        <div class="stat-card verde">
+          <span class="stat-icone">📋</span>
+          <span class="stat-valor" id="stat-registros">0</span>
+          <span class="stat-label">Registros Pendentes</span>
+        </div>
+        <div class="stat-card azul">
+          <span class="stat-icone">📈</span>
+          <span class="stat-valor" id="stat-saldo">R$ 0</span>
+          <span class="stat-label">Saldo</span>
+        </div>
+      </div>
+
+      <!-- Gráficos e Alertas -->
+      <div class="grid-2">
+
+        <!-- Gráfico por Raça -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-titulo">🐄 Rebanho por Raça</span>
+          </div>
+          <div class="card-body">
+            <div class="grafico-container">
+              <canvas id="grafico-raca"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertas -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-titulo">🔔 Alertas e Pendências</span>
+          </div>
+          <div class="card-body" id="alertas-container">
+            <p class="text-center" style="color:var(--cinza);padding:20px">
+              ✅ Nenhuma pendência encontrada
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Gráfico por Categoria e Atividades Recentes -->
+      <div class="grid-2">
+
+        <!-- Gráfico por Categoria -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-titulo">📊 Animais por Categoria</span>
+          </div>
+          <div class="card-body">
+            <div class="grafico-container">
+              <canvas id="grafico-categoria"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-titulo">⚡ Ações Rápidas</span>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <a href="animais.html?novo=1" class="btn btn-primario">
+                🐄 Cadastrar Novo Animal
+              </a>
+              <a href="nascimentos.html?novo=1" class="btn btn-outline">
+                🐣 Registrar Nascimento
+              </a>
+              <a href="reproducao.html?novo=1" class="btn btn-outline">
+                🧬 Registrar Cobertura / IATF
+              </a>
+              <a href="sanitario.html?novo=1" class="btn btn-outline">
+                💉 Registrar Manejo Sanitário
+              </a>
+              <a href="financeiro.html?novo=1" class="btn btn-outline">
+                💰 Lançar Custo
+              </a>
+              <a href="movimentacoes.html?novo=1" class="btn btn-outline">
+                🔄 Mover Animais
+              </a>
+              <a href="vendas.html?novo=1" class="btn btn-amarelo">
+                🏷️ Registrar Venda
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Locais com mais animais -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-titulo">🗺️ Animais por Local</span>
+          <a href="locais.html" class="btn btn-sm btn-secundario">Ver todos</a>
+        </div>
+        <div class="card-body">
+          <div id="tabela-locais-wrapper">
+            <div class="vazio">
+              <span class="vazio-icone">🗺️</span>
+              <p>Nenhum local cadastrado ainda.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- NAV MOBILE -->
+<nav class="nav-mobile">
+  <ul class="nav-mobile-lista">
+    <li><a href="index.html" class="ativo"><span class="nav-icon">📊</span>Dashboard</a></li>
+    <li><a href="animais.html"><span class="nav-icon">🐄</span>Animais</a></li>
+    <li><a href="reproducao.html"><span class="nav-icon">🧬</span>Reprodução</a></li>
+    <li><a href="sanitario.html"><span class="nav-icon">💉</span>Saúde</a></li>
+    <li><a href="financeiro.html"><span class="nav-icon">💰</span>Financeiro</a></li>
+  </ul>
+</nav>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  // ========== DATA ==========
+  const hoje = new Date();
+  document.getElementById('data-hoje').textContent =
+    hoje.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  // ========== CARREGAR DASHBOARD ==========
+  function carregarDashboard() {
+    const d = DB.dashboard();
+
+    // Stats
+    document.getElementById('total-cabecas').textContent = d.totalAtivos;
+    document.getElementById('stat-ativos').textContent = d.totalAtivos;
+    document.getElementById('stat-machos-femeas').textContent =
+      `♂ ${d.totalMachos} machos · ♀ ${d.totalFemeas} fêmeas`;
+    document.getElementById('stat-prenhas').textContent = d.totalPrenhas;
+    document.getElementById('stat-proximos-partos').textContent =
+      d.proximosPartos > 0 ? `⚠️ ${d.proximosPartos} próximos (7 dias)` : 'Nenhum parto próximo';
+    document.getElementById('stat-nascimentos').textContent = d.nascimentosMes;
+    document.getElementById('stat-sanitarios').textContent = d.sanitariosPendentes;
+    document.getElementById('stat-receitas').textContent = formatarMoeda(d.totalReceitas);
+    document.getElementById('stat-despesas').textContent = formatarMoeda(d.totalDespesas);
+    document.getElementById('stat-registros').textContent = d.registrosPendentes;
+
+    const saldoEl = document.getElementById('stat-saldo');
+    saldoEl.textContent = formatarMoeda(d.saldo);
+    saldoEl.style.color = d.saldo >= 0 ? 'var(--verde)' : 'var(--vermelho)';
+
+    // Alertas
+    carregarAlertas(d);
+
+    // Gráficos
+    renderizarGraficoRaca(d.porRaca);
+    renderizarGraficoCategoria(d.porCategoria);
+
+    // Locais
+    carregarTabelaLocais();
+  }
+
+  // ========== ALERTAS ==========
+  function carregarAlertas(d) {
+    const container = document.getElementById('alertas-container');
+    const alertas = [];
+
+    if (d.proximosPartos > 0) {
+      alertas.push({
+        icone: '🤰',
+        titulo: `${d.proximosPartos} parto(s) previstos nos próximos 7 dias`,
+        sub: 'Verifique as matrizes prenhas',
+        cor: 'vermelho',
+        link: 'reproducao.html'
+      });
+    }
+
+    if (d.sanitariosPendentes > 0) {
+      alertas.push({
+        icone: '💉',
+        titulo: `${d.sanitariosPendentes} manejo(s) sanitário(s) vencido(s)`,
+        sub: 'Vacinas, vermifugações ou carrapaticidas pendentes',
+        cor: 'vermelho',
+        link: 'sanitario.html'
+      });
+    }
+
+    if (d.registrosPendentes > 0) {
+      alertas.push({
+        icone: '📋',
+        titulo: `${d.registrosPendentes} registro(s) pendente(s) em associação`,
+        sub: 'Documentos aguardando envio',
+        cor: '',
+        link: 'associacoes.html'
+      });
+    }
+
+    if (d.totalPrenhas > 0) {
+      alertas.push({
+        icone: '🤰',
+        titulo: `${d.totalPrenhas} matriz(es) prenha(s)`,
+        sub: 'Acompanhe o progresso das gestações',
+        cor: 'verde',
+        link: 'reproducao.html'
+      });
+    }
+
+    if (alertas.length === 0) {
+      container.innerHTML = `
+        <p class="text-center" style="color:var(--cinza);padding:20px">
+          ✅ Nenhuma pendência encontrada
+        </p>`;
+      return;
+    }
+
+    container.innerHTML = alertas.map(a => `
+      <a href="${a.link}" class="alerta-card ${a.cor}">
+        <span class="alerta-icone">${a.icone}</span>
+        <div class="alerta-texto">
+          <strong>${a.titulo}</strong>
+          <span>${a.sub}</span>
+        </div>
+      </a>
+    `).join('');
+  }
+
+  // ========== GRÁFICOS ==========
+  let grafRaca = null, grafCat = null;
+
+  function renderizarGraficoRaca(porRaca) {
+    const canvas = document.getElementById('grafico-raca');
+    if (!canvas) return;
+
+    const labels = Object.keys(porRaca);
+    const valores = Object.values(porRaca);
+
+    if (labels.length === 0) {
+      canvas.parentElement.innerHTML = '<p class="text-center" style="color:var(--cinza);padding:30px">Nenhum animal cadastrado ainda</p>';
+      return;
+    }
+
+    if (grafRaca) grafRaca.destroy();
+    grafRaca = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{
+          data: valores,
+          backgroundColor: [
+            '#2E7D32', '#1565C0', '#E65100', '#6A1B9A',
+            '#C62828', '#558B2F', '#00838F', '#4E342E'
+          ],
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 14 } }
+        }
+      }
+    });
+  }
+
+  function renderizarGraficoCategoria(porCategoria) {
+    const canvas = document.getElementById('grafico-categoria');
+    if (!canvas) return;
+
+    const labels = Object.keys(porCategoria);
+    const valores = Object.values(porCategoria);
+
+    if (labels.length === 0) {
+      canvas.parentElement.innerHTML = '<p class="text-center" style="color:var(--cinza);padding:30px">Nenhum animal cadastrado ainda</p>';
+      return;
+    }
+
+    if (grafCat) grafCat.destroy();
+    grafCat = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Animais',
+          data: valores,
+          backgroundColor: '#388E3C',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { stepSize: 1 } },
+          x: { ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  // ========== TABELA LOCAIS ==========
+  function carregarTabelaLocais() {
+    const wrapper = document.getElementById('tabela-locais-wrapper');
+    const locais = DB.locais.listar();
+
+    if (locais.length === 0) {
+      wrapper.innerHTML = `
+        <div class="vazio">
+          <span class="vazio-icone">🗺️</span>
+          <p>Nenhum local cadastrado. <a href="locais.html">Cadastrar agora</a></p>
+        </div>`;
+      return;
+    }
+
+    const linhas = locais.map(l => {
+      const animaisNoLocal = DB.locais.animaisNoLocal(l.id);
+      return `
+        <tr>
+          <td><strong>${l.nome}</strong></td>
+          <td>${l.tipo || '-'}</td>
+          <td>${l.area ? l.area + ' ha' : '-'}</td>
+          <td><strong>${animaisNoLocal.length}</strong> animais</td>
+          <td><a href="locais.html" class="btn btn-sm btn-secundario">Ver</a></td>
+        </tr>`;
+    }).join('');
+
+    wrapper.innerHTML = `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Local</th>
+              <th>Tipo</th>
+              <th>Área</th>
+              <th>Animais</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${linhas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  // Inicializar
+  carregarDashboard();
+</script>
+</body>
+</html>

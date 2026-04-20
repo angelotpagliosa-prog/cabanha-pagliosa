@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cabanha Pagliosa - Locais e Lotes</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .local-card {
+      background: var(--branco);
+      border-radius: var(--raio);
+      box-shadow: var(--sombra);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: var(--transicao);
+      border-left: 4px solid var(--verde-medio);
+    }
+    .local-card:hover { box-shadow: var(--sombra-hover); transform: translateY(-2px); }
+    .local-card.lote { border-left-color: var(--marrom); }
+
+    .local-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .local-card-nome {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--verde-escuro);
+    }
+    .local-card.lote .local-card-nome { color: var(--marrom); }
+    .local-card-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 0.82rem;
+      color: var(--cinza);
+    }
+    .local-card-meta span strong { color: var(--texto); }
+    .local-card-animais {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--verde-escuro);
+    }
+    .local-card-obs {
+      font-size: 0.8rem;
+      color: var(--cinza);
+      font-style: italic;
+    }
+    .local-card-acoes {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .capacidade-barra {
+      width: 100%;
+      background: var(--cinza-muito-claro);
+      border-radius: 99px;
+      height: 6px;
+      overflow: hidden;
+    }
+    .capacidade-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--verde-medio);
+      transition: width 0.5s ease;
+    }
+    .capacidade-fill.cheia { background: var(--vermelho); }
+    .capacidade-fill.quase { background: var(--amarelo); }
+    .tipo-badge {
+      background: var(--verde-muito-claro);
+      color: var(--verde-escuro);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+    .tipo-badge.lote-badge {
+      background: #f3ede9;
+      color: var(--marrom);
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐄</span>
+      <h1>Cabanha Pagliosa</h1>
+      <span>Sistema de Gestão do Rebanho</span>
+    </div>
+    <div class="sidebar-nav">
+      <span class="sidebar-secao">Principal</span>
+      <a href="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="animais.html"><span class="nav-icon">🐄</span> Animais</a>
+      <a href="locais.html" class="ativo"><span class="nav-icon">🗺️</span> Locais e Lotes</a>
+      <a href="movimentacoes.html"><span class="nav-icon">🔄</span> Movimentações</a>
+      <span class="sidebar-secao">Reprodução</span>
+      <a href="reproducao.html"><span class="nav-icon">🧬</span> Coberturas e IATF</a>
+      <a href="nascimentos.html"><span class="nav-icon">🐣</span> Nascimentos</a>
+      <span class="sidebar-secao">Saúde</span>
+      <a href="sanitario.html"><span class="nav-icon">💉</span> Manejo Sanitário</a>
+      <span class="sidebar-secao">Administrativo</span>
+      <a href="financeiro.html"><span class="nav-icon">💰</span> Financeiro</a>
+      <a href="vendas.html"><span class="nav-icon">🏷️</span> Vendas</a>
+      <a href="associacoes.html"><span class="nav-icon">📋</span> Associações</a>
+      <span class="sidebar-secao">Sistema</span>
+      <a href="configuracoes.html"><span class="nav-icon">⚙️</span> Configurações</a>
+    </div>
+  </nav>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo">🗺️ Locais e Lotes</div>
+      <div class="topbar-acoes">
+        <button class="btn btn-primario" onclick="novoLocal()">
+          + Novo Local
+        </button>
+        <button class="btn btn-outline" onclick="novoLote()">
+          + Novo Lote
+        </button>
+      </div>
+    </div>
+
+    <div class="pagina">
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(160px,1fr))">
+        <div class="stat-card verde">
+          <span class="stat-icone">🗺️</span>
+          <span class="stat-valor" id="stat-locais">0</span>
+          <span class="stat-label">Locais</span>
+        </div>
+        <div class="stat-card marrom">
+          <span class="stat-icone">📦</span>
+          <span class="stat-valor" id="stat-lotes">0</span>
+          <span class="stat-label">Lotes</span>
+        </div>
+        <div class="stat-card azul">
+          <span class="stat-icone">🐄</span>
+          <span class="stat-valor" id="stat-alocados">0</span>
+          <span class="stat-label">Animais Alocados</span>
+        </div>
+        <div class="stat-card amarelo">
+          <span class="stat-icone">🌿</span>
+          <span class="stat-valor" id="stat-area">0 ha</span>
+          <span class="stat-label">Área Total</span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs" id="tabs-container">
+        <button class="tab ativo" onclick="mudarTab('locais', this)">🗺️ Locais</button>
+        <button class="tab" onclick="mudarTab('lotes', this)">📦 Lotes</button>
+      </div>
+
+      <!-- Painel Locais -->
+      <div id="painel-locais">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-titulo">Todos os Locais</span>
+            <div class="barra-busca" style="margin:0">
+              <span class="busca-icone">🔍</span>
+              <input type="text" class="campo-busca" id="busca-locais"
+                placeholder="Buscar local..." oninput="renderLocais()">
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="lista-locais"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel Lotes -->
+      <div id="painel-lotes" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-titulo">Todos os Lotes</span>
+            <div class="barra-busca" style="margin:0">
+              <span class="busca-icone">🔍</span>
+              <input type="text" class="campo-busca" id="busca-lotes"
+                placeholder="Buscar lote..." oninput="renderLotes()">
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="lista-lotes"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- NAV MOBILE -->
+<nav class="nav-mobile">
+  <ul class="nav-mobile-lista">
+    <li><a href="index.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+    <li><a href="animais.html"><span class="nav-icon">🐄</span>Animais</a></li>
+    <li><a href="reproducao.html"><span class="nav-icon">🧬</span>Reprodução</a></li>
+    <li><a href="sanitario.html"><span class="nav-icon">💉</span>Saúde</a></li>
+    <li><a href="financeiro.html"><span class="nav-icon">💰</span>Financeiro</a></li>
+  </ul>
+</nav>
+
+<!-- MODAL NOVO/EDITAR LOCAL -->
+<div class="modal-overlay" id="modal-local">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="modal-local-titulo">Novo Local</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-local')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-local" onsubmit="salvarLocal(event)">
+        <input type="hidden" id="local-id">
+
+        <div class="form-grupo">
+          <label class="form-label">Nome do Local <span style="color:var(--vermelho)">*</span></label>
+          <input type="text" class="form-input" id="local-nome" placeholder="Ex: Potreiro Norte" required>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-grupo">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" id="local-tipo">
+              <option value="">Selecionar...</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Área (hectares)</label>
+            <input type="number" class="form-input" id="local-area" placeholder="Ex: 25.5" step="0.1" min="0">
+          </div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Capacidade (animais)</label>
+          <input type="number" class="form-input" id="local-capacidade" placeholder="Ex: 50" min="0">
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Observações</label>
+          <textarea class="form-textarea" id="local-obs" rows="3" placeholder="Informações adicionais..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button type="button" class="btn btn-secundario" onclick="fecharModal('modal-local')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">Salvar Local</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVO/EDITAR LOTE -->
+<div class="modal-overlay" id="modal-lote">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="modal-lote-titulo">Novo Lote</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-lote')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-lote" onsubmit="salvarLote(event)">
+        <input type="hidden" id="lote-id">
+
+        <div class="form-grupo">
+          <label class="form-label">Nome do Lote <span style="color:var(--vermelho)">*</span></label>
+          <input type="text" class="form-input" id="lote-nome" placeholder="Ex: Lote Reprodução 2025" required>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Local Associado</label>
+          <select class="form-select" id="lote-local">
+            <option value="">Nenhum local específico</option>
+          </select>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Descrição</label>
+          <textarea class="form-textarea" id="lote-descricao" rows="3" placeholder="Descrição do lote..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button type="button" class="btn btn-secundario" onclick="fecharModal('modal-lote')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">Salvar Lote</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER ANIMAIS DO LOCAL -->
+<div class="modal-overlay" id="modal-animais-local">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <span id="modal-animais-titulo">Animais no Local</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-animais-local')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="lista-animais-local"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  // ========== ESTADO ==========
+  let tabAtual = 'locais';
+
+  // ========== INICIALIZAÇÃO ==========
+  function init() {
+    preencherSelect('local-tipo', TIPOS_LOCAL);
+    carregarStats();
+    renderLocais();
+    renderLotes();
+
+    // Abrir novo local via query param
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('novo') === '1') novoLocal();
+  }
+
+  // ========== TABS ==========
+  function mudarTab(tab, btn) {
+    tabAtual = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    document.getElementById('painel-locais').style.display = tab === 'locais' ? 'block' : 'none';
+    document.getElementById('painel-lotes').style.display = tab === 'lotes' ? 'block' : 'none';
+  }
+
+  // ========== STATS ==========
+  function carregarStats() {
+    const locais = DB.locais.listar();
+    const lotes = DB.lotes.listar();
+
+    let totalAlocados = 0;
+    let totalArea = 0;
+    locais.forEach(l => {
+      totalAlocados += DB.locais.animaisNoLocal(l.id).length;
+      totalArea += parseFloat(l.area || 0);
+    });
+    lotes.forEach(lt => {
+      // animais no lote que não estão já contabilizados
+    });
+    // animais com loteId
+    const animaisComLote = DB.animais.listar({ status: 'ativo' }).filter(a => a.loteId && !a.localId);
+    totalAlocados += animaisComLote.length;
+
+    document.getElementById('stat-locais').textContent = locais.length;
+    document.getElementById('stat-lotes').textContent = lotes.length;
+    document.getElementById('stat-alocados').textContent = DB.animais.listar().filter(a =>
+      (a.localId || a.loteId) && a.status === 'ativo'
+    ).length;
+    document.getElementById('stat-area').textContent =
+      totalArea > 0 ? totalArea.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' ha' : '0 ha';
+  }
+
+  // ========== RENDER LOCAIS ==========
+  function renderLocais() {
+    const busca = (document.getElementById('busca-locais')?.value || '').toLowerCase();
+    let locais = DB.locais.listar();
+    if (busca) locais = locais.filter(l =>
+      l.nome.toLowerCase().includes(busca) ||
+      (l.tipo || '').toLowerCase().includes(busca)
+    );
+
+    const container = document.getElementById('lista-locais');
+
+    if (locais.length === 0) {
+      container.innerHTML = `
+        <div class="vazio">
+          <span class="vazio-icone">🗺️</span>
+          <p>${busca ? 'Nenhum local encontrado para "' + busca + '".' : 'Nenhum local cadastrado ainda.'}</p>
+          ${!busca ? '<button class="btn btn-primario" onclick="novoLocal()">+ Cadastrar Primeiro Local</button>' : ''}
+        </div>`;
+      return;
+    }
+
+    const html = `<div class="grid-cards">${locais.map(local => {
+      const animais = DB.locais.animaisNoLocal(local.id);
+      const qtd = animais.length;
+      const cap = parseInt(local.capacidade) || 0;
+      const pct = cap > 0 ? Math.min(100, Math.round((qtd / cap) * 100)) : 0;
+      const fillClass = pct >= 100 ? 'cheia' : pct >= 80 ? 'quase' : '';
+      return `
+        <div class="local-card">
+          <div class="local-card-header">
+            <div>
+              <div class="local-card-nome">${local.nome}</div>
+              ${local.tipo ? `<span class="tipo-badge">${local.tipo}</span>` : ''}
+            </div>
+            <div class="local-card-acoes">
+              <button class="btn btn-sm btn-secundario" onclick="verAnimaisLocal('${local.id}', '${escHtml(local.nome)}')" title="Ver animais">🐄</button>
+              <button class="btn btn-sm btn-outline" onclick="editarLocal('${local.id}')" title="Editar">✏️</button>
+              <button class="btn btn-sm btn-perigo" onclick="excluirLocal('${local.id}')" title="Excluir">🗑️</button>
+            </div>
+          </div>
+          <div class="local-card-meta">
+            ${local.area ? `<span>🌿 <strong>${parseFloat(local.area).toLocaleString('pt-BR', {maximumFractionDigits:1})} ha</strong></span>` : ''}
+            ${cap > 0 ? `<span>📊 Cap. <strong>${cap}</strong></span>` : ''}
+          </div>
+          <div class="local-card-animais">
+            🐄 <strong>${qtd}</strong> animal${qtd !== 1 ? 'is' : ''} ${cap > 0 ? `de ${cap}` : ''}
+            ${cap > 0 ? `
+              <div style="flex:1">
+                <div class="capacidade-barra" title="${pct}% da capacidade">
+                  <div class="capacidade-fill ${fillClass}" style="width:${pct}%"></div>
+                </div>
+              </div>
+              <span style="font-size:0.75rem;color:var(--cinza)">${pct}%</span>
+            ` : ''}
+          </div>
+          ${local.observacoes ? `<div class="local-card-obs">${escHtml(local.observacoes)}</div>` : ''}
+        </div>`;
+    }).join('')}</div>`;
+
+    container.innerHTML = html;
+  }
+
+  // ========== RENDER LOTES ==========
+  function renderLotes() {
+    const busca = (document.getElementById('busca-lotes')?.value || '').toLowerCase();
+    let lotes = DB.lotes.listar();
+    if (busca) lotes = lotes.filter(l =>
+      l.nome.toLowerCase().includes(busca) ||
+      (l.descricao || '').toLowerCase().includes(busca)
+    );
+
+    const container = document.getElementById('lista-lotes');
+
+    if (lotes.length === 0) {
+      container.innerHTML = `
+        <div class="vazio">
+          <span class="vazio-icone">📦</span>
+          <p>${busca ? 'Nenhum lote encontrado para "' + busca + '".' : 'Nenhum lote cadastrado ainda.'}</p>
+          ${!busca ? '<button class="btn btn-primario" onclick="novoLote()">+ Cadastrar Primeiro Lote</button>' : ''}
+        </div>`;
+      return;
+    }
+
+    const html = `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Nome do Lote</th>
+              <th>Local</th>
+              <th>Animais</th>
+              <th>Descrição</th>
+              <th style="width:120px">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lotes.map(lote => {
+              const animais = DB.lotes.animaisNoLote(lote.id);
+              return `
+                <tr>
+                  <td>
+                    <strong>${escHtml(lote.nome)}</strong>
+                  </td>
+                  <td>${lote.localId ? `<span class="tipo-badge">${nomeLocal(lote.localId)}</span>` : '<span style="color:var(--cinza)">—</span>'}</td>
+                  <td>
+                    <span style="font-weight:700;color:var(--marrom)">${animais.length}</span>
+                    <span style="color:var(--cinza);font-size:0.8rem"> animal${animais.length !== 1 ? 'is' : ''}</span>
+                  </td>
+                  <td style="max-width:200px;white-space:normal;font-size:0.82rem;color:var(--cinza)">
+                    ${lote.descricao ? escHtml(lote.descricao) : '—'}
+                  </td>
+                  <td>
+                    <div style="display:flex;gap:4px">
+                      <button class="btn btn-sm btn-secundario" onclick="verAnimaisLote('${lote.id}', '${escHtml(lote.nome)}')" title="Ver animais">🐄</button>
+                      <button class="btn btn-sm btn-outline" onclick="editarLote('${lote.id}')" title="Editar">✏️</button>
+                      <button class="btn btn-sm btn-perigo" onclick="excluirLote('${lote.id}')" title="Excluir">🗑️</button>
+                    </div>
+                  </td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+    container.innerHTML = html;
+  }
+
+  // ========== NOVO / EDITAR LOCAL ==========
+  function novoLocal() {
+    document.getElementById('local-id').value = '';
+    document.getElementById('modal-local-titulo').textContent = '🗺️ Novo Local';
+    document.getElementById('form-local').reset();
+    preencherSelect('local-tipo', TIPOS_LOCAL);
+    abrirModal('modal-local');
+  }
+
+  function editarLocal(id) {
+    const local = DB.locais.buscarPorId(id);
+    if (!local) return;
+    document.getElementById('local-id').value = local.id;
+    document.getElementById('modal-local-titulo').textContent = '✏️ Editar Local';
+    document.getElementById('local-nome').value = local.nome || '';
+    preencherSelect('local-tipo', TIPOS_LOCAL, local.tipo);
+    document.getElementById('local-area').value = local.area || '';
+    document.getElementById('local-capacidade').value = local.capacidade || '';
+    document.getElementById('local-obs').value = local.observacoes || '';
+    abrirModal('modal-local');
+  }
+
+  function salvarLocal(e) {
+    e.preventDefault();
+    const id = document.getElementById('local-id').value;
+    const local = {
+      nome: document.getElementById('local-nome').value.trim(),
+      tipo: document.getElementById('local-tipo').value,
+      area: parseFloat(document.getElementById('local-area').value) || null,
+      capacidade: parseInt(document.getElementById('local-capacidade').value) || null,
+      observacoes: document.getElementById('local-obs').value.trim(),
+    };
+    if (id) local.id = id;
+    DB.locais.salvar(local);
+    fecharModal('modal-local');
+    mostrarToast(id ? 'Local atualizado!' : 'Local cadastrado!', 'sucesso');
+    carregarStats();
+    renderLocais();
+  }
+
+  function excluirLocal(id) {
+    const local = DB.locais.buscarPorId(id);
+    if (!local) return;
+    const animais = DB.locais.animaisNoLocal(id);
+    let msg = `Excluir o local "${local.nome}"?`;
+    if (animais.length > 0) {
+      msg += `\n\nAtenção: existem ${animais.length} animal(is) neste local. Eles ficarão sem local atribuído.`;
+    }
+    if (!confirmar(msg)) return;
+    DB.locais.excluir(id);
+    mostrarToast('Local excluído.', 'sucesso');
+    carregarStats();
+    renderLocais();
+  }
+
+  // ========== NOVO / EDITAR LOTE ==========
+  function novoLote() {
+    document.getElementById('lote-id').value = '';
+    document.getElementById('modal-lote-titulo').textContent = '📦 Novo Lote';
+    document.getElementById('form-lote').reset();
+    preencherSelectLocais('lote-local');
+    abrirModal('modal-lote');
+  }
+
+  function editarLote(id) {
+    const lote = DB.lotes.buscarPorId(id);
+    if (!lote) return;
+    document.getElementById('lote-id').value = lote.id;
+    document.getElementById('modal-lote-titulo').textContent = '✏️ Editar Lote';
+    document.getElementById('lote-nome').value = lote.nome || '';
+    preencherSelectLocais('lote-local', lote.localId);
+    document.getElementById('lote-descricao').value = lote.descricao || '';
+    abrirModal('modal-lote');
+  }
+
+  function salvarLote(e) {
+    e.preventDefault();
+    const id = document.getElementById('lote-id').value;
+    const lote = {
+      nome: document.getElementById('lote-nome').value.trim(),
+      localId: document.getElementById('lote-local').value || null,
+      descricao: document.getElementById('lote-descricao').value.trim(),
+    };
+    if (id) lote.id = id;
+    DB.lotes.salvar(lote);
+    fecharModal('modal-lote');
+    mostrarToast(id ? 'Lote atualizado!' : 'Lote cadastrado!', 'sucesso');
+    carregarStats();
+    renderLotes();
+  }
+
+  function excluirLote(id) {
+    const lote = DB.lotes.buscarPorId(id);
+    if (!lote) return;
+    const animais = DB.lotes.animaisNoLote(id);
+    let msg = `Excluir o lote "${lote.nome}"?`;
+    if (animais.length > 0) {
+      msg += `\n\nAtenção: existem ${animais.length} animal(is) neste lote. Eles ficarão sem lote atribuído.`;
+    }
+    if (!confirmar(msg)) return;
+    DB.lotes.excluir(id);
+    mostrarToast('Lote excluído.', 'sucesso');
+    carregarStats();
+    renderLotes();
+  }
+
+  // ========== VER ANIMAIS DO LOCAL / LOTE ==========
+  function verAnimaisLocal(localId, nomeLocalStr) {
+    const animais = DB.locais.animaisNoLocal(localId);
+    document.getElementById('modal-animais-titulo').textContent = `🐄 Animais em "${nomeLocalStr}"`;
+    renderListaAnimaisModal(animais);
+    abrirModal('modal-animais-local');
+  }
+
+  function verAnimaisLote(loteId, nomeLoteStr) {
+    const animais = DB.lotes.animaisNoLote(loteId);
+    document.getElementById('modal-animais-titulo').textContent = `🐄 Animais no Lote "${nomeLoteStr}"`;
+    renderListaAnimaisModal(animais);
+    abrirModal('modal-animais-local');
+  }
+
+  function renderListaAnimaisModal(animais) {
+    const container = document.getElementById('lista-animais-local');
+    if (animais.length === 0) {
+      container.innerHTML = `<div class="vazio"><span class="vazio-icone">🐄</span><p>Nenhum animal neste local/lote.</p></div>`;
+      return;
+    }
+    container.innerHTML = `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Nº / Brinco</th>
+              <th>Nome</th>
+              <th>Sexo</th>
+              <th>Raça</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${animais.map(a => `
+              <tr>
+                <td><strong>${a.numero || '—'}</strong>${a.brinco ? '<br><span style="font-size:0.75rem;color:var(--cinza)">' + escHtml(a.brinco) + '</span>' : ''}</td>
+                <td>${a.nome ? escHtml(a.nome) : '<span style="color:var(--cinza)">—</span>'}</td>
+                <td>${chipSexo(a.sexo)}</td>
+                <td>${badgeRaca(a.raca)}</td>
+                <td>${badgeStatus(a.status)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  // ========== HELPERS ==========
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // Inicializar
+  init();
+</script>
+</body>
+</html>

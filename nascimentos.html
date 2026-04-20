@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cabanha Pagliosa - Nascimentos</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .nascimento-card {
+      background: var(--branco);
+      border-radius: var(--raio);
+      box-shadow: var(--sombra);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: var(--transicao);
+      border-left: 5px solid var(--verde-medio);
+    }
+    .nascimento-card:hover { box-shadow: var(--sombra-hover); }
+    .nascimento-card.femea { border-left-color: #e879a0; }
+    .nascimento-card.macho { border-left-color: var(--azul); }
+
+    .nasc-sexo-icone {
+      font-size: 2rem;
+      width: 48px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .nasc-info { flex: 1; min-width: 0; }
+    .nasc-titulo {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .nasc-meta {
+      font-size: 0.8rem;
+      color: var(--cinza);
+      margin-top: 4px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .nasc-meta span { display: flex; align-items: center; gap: 3px; }
+    .nasc-acoes { display: flex; gap: 6px; flex-shrink: 0; }
+
+    .filtros-barra {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .chip-filtro {
+      padding: 4px 14px;
+      border-radius: 99px;
+      border: 1.5px solid var(--cinza-claro);
+      background: var(--branco);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--cinza);
+      transition: var(--transicao);
+    }
+    .chip-filtro:hover, .chip-filtro.ativo {
+      border-color: var(--verde-medio);
+      background: var(--verde-muito-claro);
+      color: var(--verde-escuro);
+    }
+    .chip-filtro.femea.ativo { border-color: #e879a0; background: #fdf2f7; color: #9d174d; }
+    .chip-filtro.macho.ativo { border-color: var(--azul); background: #eff6ff; color: #1e40af; }
+
+    .checkbox-criar {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px;
+      background: var(--verde-muito-claro);
+      border: 1.5px solid var(--verde-claro);
+      border-radius: var(--raio);
+      cursor: pointer;
+      user-select: none;
+    }
+    .checkbox-criar input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--verde-medio);
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+    .checkbox-criar strong { display: block; font-size: 0.9rem; color: var(--verde-escuro); }
+    .checkbox-criar span { font-size: 0.8rem; color: var(--cinza); }
+
+    .secao-te-nasc {
+      background: #fdf6e3;
+      border: 1px solid #f5e0a0;
+      border-radius: var(--raio);
+      padding: 14px;
+    }
+    .lista-nascimentos-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .empty-mes {
+      text-align: center;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      color: var(--cinza);
+      background: var(--cinza-muito-claro);
+      border-radius: var(--raio);
+    }
+    .mes-grupo-titulo {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--cinza);
+      padding: 8px 4px 4px;
+      border-bottom: 1px solid var(--cinza-muito-claro);
+      margin-top: 8px;
+    }
+    .mes-grupo-titulo:first-child { margin-top: 0; }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐄</span>
+      <h1>Cabanha Pagliosa</h1>
+      <span>Sistema de Gestão do Rebanho</span>
+    </div>
+    <div class="sidebar-nav">
+      <span class="sidebar-secao">Principal</span>
+      <a href="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="animais.html"><span class="nav-icon">🐄</span> Animais</a>
+      <a href="locais.html"><span class="nav-icon">🗺️</span> Locais e Lotes</a>
+      <a href="movimentacoes.html"><span class="nav-icon">🔄</span> Movimentações</a>
+      <span class="sidebar-secao">Reprodução</span>
+      <a href="reproducao.html"><span class="nav-icon">🧬</span> Coberturas e IATF</a>
+      <a href="nascimentos.html" class="ativo"><span class="nav-icon">🐣</span> Nascimentos</a>
+      <span class="sidebar-secao">Saúde</span>
+      <a href="sanitario.html"><span class="nav-icon">💉</span> Manejo Sanitário</a>
+      <span class="sidebar-secao">Administrativo</span>
+      <a href="financeiro.html"><span class="nav-icon">💰</span> Financeiro</a>
+      <a href="vendas.html"><span class="nav-icon">🏷️</span> Vendas</a>
+      <a href="associacoes.html"><span class="nav-icon">📋</span> Associações</a>
+      <span class="sidebar-secao">Sistema</span>
+      <a href="configuracoes.html"><span class="nav-icon">⚙️</span> Configurações</a>
+    </div>
+  </nav>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo">🐣 Nascimentos</div>
+      <div class="topbar-acoes">
+        <button class="btn btn-primario" onclick="novoNascimento()">+ Registrar Nascimento</button>
+      </div>
+    </div>
+
+    <div class="pagina">
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(150px,1fr))">
+        <div class="stat-card verde">
+          <span class="stat-icone">🐣</span>
+          <span class="stat-valor" id="stat-total">0</span>
+          <span class="stat-label">Total Nascimentos</span>
+        </div>
+        <div class="stat-card azul">
+          <span class="stat-icone">♂️</span>
+          <span class="stat-valor" id="stat-machos">0</span>
+          <span class="stat-label">Machos</span>
+        </div>
+        <div class="stat-card" style="--cor-stat:#e879a0">
+          <span class="stat-icone">♀️</span>
+          <span class="stat-valor" id="stat-femeas">0</span>
+          <span class="stat-label">Fêmeas</span>
+        </div>
+        <div class="stat-card amarelo">
+          <span class="stat-icone">📅</span>
+          <span class="stat-valor" id="stat-mes">0</span>
+          <span class="stat-label">Este Mês</span>
+        </div>
+      </div>
+
+      <!-- Filtros e Lista -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-titulo">Todos os Nascimentos</span>
+        </div>
+        <div class="card-body">
+          <!-- Barra de filtros -->
+          <div class="filtros-barra">
+            <div class="barra-busca" style="flex:1;min-width:200px;margin:0">
+              <span class="busca-icone">🔍</span>
+              <input type="text" class="campo-busca" id="busca-nasc"
+                placeholder="Buscar por mãe, pai, raça..." oninput="renderNascimentos()">
+            </div>
+            <button class="chip-filtro ativo" id="filtro-todos" onclick="aplicarFiltroSexo('', this)">Todos</button>
+            <button class="chip-filtro macho" id="filtro-macho" onclick="aplicarFiltroSexo('macho', this)">♂ Machos</button>
+            <button class="chip-filtro femea" id="filtro-femea" onclick="aplicarFiltroSexo('fêmea', this)">♀ Fêmeas</button>
+            <select class="form-select" id="filtro-ano" onchange="renderNascimentos()" style="width:auto;padding:6px 10px;font-size:0.85rem">
+              <option value="">Todos os anos</option>
+            </select>
+          </div>
+
+          <div id="lista-nascimentos"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- NAV MOBILE -->
+<nav class="nav-mobile">
+  <ul class="nav-mobile-lista">
+    <li><a href="index.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+    <li><a href="animais.html"><span class="nav-icon">🐄</span>Animais</a></li>
+    <li><a href="reproducao.html"><span class="nav-icon">🧬</span>Reprodução</a></li>
+    <li><a href="sanitario.html"><span class="nav-icon">💉</span>Saúde</a></li>
+    <li><a href="financeiro.html"><span class="nav-icon">💰</span>Financeiro</a></li>
+  </ul>
+</nav>
+
+<!-- MODAL NOVO/EDITAR NASCIMENTO -->
+<div class="modal-overlay" id="modal-nascimento">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <span id="modal-nasc-titulo">🐣 Registrar Nascimento</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-nascimento')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-nascimento" onsubmit="salvarNascimento(event)">
+        <input type="hidden" id="nasc-id">
+
+        <div class="grid-2">
+          <div class="form-grupo">
+            <label class="form-label">Data de Nascimento <span style="color:var(--vermelho)">*</span></label>
+            <input type="date" class="form-input" id="nasc-data" required>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Sexo <span style="color:var(--vermelho)">*</span></label>
+            <select class="form-select" id="nasc-sexo" required>
+              <option value="">Selecionar...</option>
+              <option value="macho">♂ Macho</option>
+              <option value="fêmea">♀ Fêmea</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-grupo">
+            <label class="form-label">Raça</label>
+            <select class="form-select" id="nasc-raca">
+              <option value="">Selecionar...</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Grau de Sangue</label>
+            <input type="text" class="form-input" id="nasc-grau" placeholder="Ex: 1/2, 3/4, PO...">
+          </div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Peso ao Nascimento (kg)</label>
+          <input type="number" class="form-input" id="nasc-peso" placeholder="Ex: 32.5" step="0.1" min="0">
+        </div>
+
+        <div class="divisor"></div>
+        <p style="font-weight:700;font-size:0.9rem;color:var(--verde-escuro);margin-bottom:12px">👨‍👩‍👧 Parentesco</p>
+
+        <div class="form-grupo">
+          <label class="form-label">Mãe (Matriz)</label>
+          <select class="form-select" id="nasc-mae" onchange="preencherDadosDaMae()">
+            <option value="">Selecionar mãe...</option>
+          </select>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-grupo">
+            <label class="form-label">Pai / Reprodutor</label>
+            <input type="text" class="form-input" id="nasc-pai" placeholder="Nome do pai/reprodutor">
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Brinco do Pai</label>
+            <input type="text" class="form-input" id="nasc-brinco-pai" placeholder="Nº brinco ou reg.">
+          </div>
+        </div>
+
+        <div class="divisor"></div>
+        <p style="font-weight:700;font-size:0.9rem;color:var(--verde-escuro);margin-bottom:12px">🧬 Origem Reprodutiva</p>
+
+        <div class="form-grupo">
+          <label class="form-label">Tipo de Cobertura que Originou</label>
+          <select class="form-select" id="nasc-tipo-cob" onchange="toggleCamposTE()">
+            <option value="">Não informado</option>
+          </select>
+        </div>
+
+        <!-- Campos TE/FIV -->
+        <div id="secao-te-nasc" style="display:none">
+          <div class="secao-te-nasc">
+            <div class="grid-2">
+              <div class="form-grupo" style="margin-bottom:8px">
+                <label class="form-label">Doadora</label>
+                <select class="form-select" id="nasc-doadora">
+                  <option value="">Selecionar doadora...</option>
+                </select>
+              </div>
+              <div class="form-grupo" style="margin-bottom:0" id="grupo-receptora">
+                <label class="form-label">Receptora</label>
+                <select class="form-select" id="nasc-receptora">
+                  <option value="">Selecionar receptora...</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Observações</label>
+          <textarea class="form-textarea" id="nasc-obs" rows="2" placeholder="Observações sobre o nascimento..."></textarea>
+        </div>
+
+        <div class="divisor"></div>
+
+        <!-- Checkbox criar animal -->
+        <label class="checkbox-criar">
+          <input type="checkbox" id="nasc-criar-animal" checked>
+          <div>
+            <strong>Criar automaticamente o animal no sistema</strong>
+            <span>O animal será cadastrado com os dados acima. Você poderá complementar as informações depois.</span>
+          </div>
+        </label>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+          <button type="button" class="btn btn-secundario" onclick="fecharModal('modal-nascimento')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">💾 Salvar Nascimento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER NASCIMENTO -->
+<div class="modal-overlay" id="modal-ver-nascimento">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <span>🐣 Detalhes do Nascimento</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-ver-nascimento')">✕</button>
+    </div>
+    <div class="modal-body" id="detalhe-nascimento"></div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  // ========== ESTADO ==========
+  let filtroSexoAtual = '';
+
+  // ========== INICIALIZAÇÃO ==========
+  function init() {
+    document.getElementById('nasc-data').value = new Date().toISOString().split('T')[0];
+    preencherSelect('nasc-raca', RACAS);
+    preencherSelect('nasc-tipo-cob', TIPOS_COBERTURA);
+    preencherSelectAnimais('nasc-mae', { sexo: 'fêmea', status: 'ativo' });
+    preencherSelectAnimais('nasc-doadora', { sexo: 'fêmea', status: 'ativo' });
+    preencherSelectAnimais('nasc-receptora', { sexo: 'fêmea', status: 'ativo' });
+
+    preencherFiltroAnos();
+    carregarStats();
+    renderNascimentos();
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('novo') === '1') novoNascimento();
+  }
+
+  // ========== PREENCHER ANOS NO FILTRO ==========
+  function preencherFiltroAnos() {
+    const nasc = DB.nascimentos.listar();
+    const anos = [...new Set(nasc.map(n => n.dataNascimento ? n.dataNascimento.substring(0, 4) : null).filter(Boolean))].sort().reverse();
+    const sel = document.getElementById('filtro-ano');
+    anos.forEach(ano => {
+      const opt = document.createElement('option');
+      opt.value = ano;
+      opt.textContent = ano;
+      sel.appendChild(opt);
+    });
+  }
+
+  // ========== STATS ==========
+  function carregarStats() {
+    const todos = DB.nascimentos.listar();
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+
+    const doMes = todos.filter(n => {
+      if (!n.dataNascimento) return false;
+      const d = new Date(n.dataNascimento + 'T00:00:00');
+      return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+    });
+
+    document.getElementById('stat-total').textContent = todos.length;
+    document.getElementById('stat-machos').textContent = todos.filter(n => n.sexo === 'macho').length;
+    document.getElementById('stat-femeas').textContent = todos.filter(n => n.sexo === 'fêmea').length;
+    document.getElementById('stat-mes').textContent = doMes.length;
+  }
+
+  // ========== FILTRO SEXO ==========
+  function aplicarFiltroSexo(sexo, btn) {
+    filtroSexoAtual = sexo;
+    document.querySelectorAll('.chip-filtro').forEach(c => c.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    renderNascimentos();
+  }
+
+  // ========== RENDER NASCIMENTOS ==========
+  function renderNascimentos() {
+    const busca = (document.getElementById('busca-nasc')?.value || '').toLowerCase();
+    const anoFiltro = document.getElementById('filtro-ano')?.value || '';
+    let lista = DB.nascimentos.listar();
+
+    if (filtroSexoAtual) lista = lista.filter(n => n.sexo === filtroSexoAtual);
+    if (anoFiltro) lista = lista.filter(n => (n.dataNascimento || '').startsWith(anoFiltro));
+    if (busca) lista = lista.filter(n =>
+      nomeAnimal(n.maeId).toLowerCase().includes(busca) ||
+      (n.pai || '').toLowerCase().includes(busca) ||
+      (n.raca || '').toLowerCase().includes(busca) ||
+      (n.dataNascimento || '').includes(busca)
+    );
+
+    const container = document.getElementById('lista-nascimentos');
+
+    if (lista.length === 0) {
+      container.innerHTML = `
+        <div class="vazio">
+          <span class="vazio-icone">🐣</span>
+          <p>${busca || filtroSexoAtual || anoFiltro
+            ? 'Nenhum nascimento encontrado para os filtros aplicados.'
+            : 'Nenhum nascimento registrado ainda.'}</p>
+          ${!busca && !filtroSexoAtual && !anoFiltro
+            ? '<button class="btn btn-primario" onclick="novoNascimento()">+ Registrar Primeiro Nascimento</button>'
+            : ''}
+        </div>`;
+      return;
+    }
+
+    // Agrupar por mês/ano
+    const grupos = {};
+    lista.forEach(n => {
+      const data = n.dataNascimento ? new Date(n.dataNascimento + 'T00:00:00') : null;
+      const chave = data
+        ? data.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+        : 'Sem data';
+      if (!grupos[chave]) grupos[chave] = [];
+      grupos[chave].push(n);
+    });
+
+    let html = '<div class="lista-nascimentos-grid">';
+    Object.entries(grupos).forEach(([mes, itens]) => {
+      html += `<div class="mes-grupo-titulo">📅 ${mes.charAt(0).toUpperCase() + mes.slice(1)} — ${itens.length} nascimento${itens.length !== 1 ? 's' : ''}</div>`;
+      itens.forEach(n => {
+        const isMacho = n.sexo === 'macho';
+        const isFemea = n.sexo === 'fêmea';
+        const sexoIcon = isMacho ? '♂️' : isFemea ? '♀️' : '❓';
+        const cardClass = isMacho ? 'macho' : isFemea ? 'femea' : '';
+        const pesoBadge = n.pesoNascimento ? `<span>⚖️ ${parseFloat(n.pesoNascimento).toLocaleString('pt-BR', {minimumFractionDigits:1})} kg</span>` : '';
+        const maeNome = n.maeId ? nomeAnimal(n.maeId) : (n.maeNome || '—');
+        const tipoCob = n.tipoCobertura ? `<span>🧬 ${n.tipoCobertura}</span>` : '';
+
+        html += `
+          <div class="nascimento-card ${cardClass}">
+            <div class="nasc-sexo-icone">${sexoIcon}</div>
+            <div class="nasc-info">
+              <div class="nasc-titulo">
+                <span>${formatarData(n.dataNascimento)}</span>
+                ${n.raca ? badgeRaca(n.raca) : ''}
+                ${n.grauSangue ? `<span class="badge badge-cinza">${escHtml(n.grauSangue)}</span>` : ''}
+                ${chipSexo(n.sexo)}
+              </div>
+              <div class="nasc-meta">
+                <span>👩 Mãe: <strong>${maeNome}</strong></span>
+                ${n.pai ? `<span>👨 Pai: <strong>${escHtml(n.pai)}</strong></span>` : ''}
+                ${pesoBadge}
+                ${tipoCob}
+              </div>
+              ${n.observacoes ? `<div style="font-size:0.78rem;color:var(--cinza);margin-top:4px;font-style:italic">${escHtml(n.observacoes)}</div>` : ''}
+            </div>
+            <div class="nasc-acoes">
+              <button class="btn btn-sm btn-secundario" onclick="verNascimento('${n.id}')" title="Ver detalhes">👁️</button>
+              <button class="btn btn-sm btn-outline" onclick="editarNascimento('${n.id}')" title="Editar">✏️</button>
+              <button class="btn btn-sm btn-perigo" onclick="excluirNascimento('${n.id}')" title="Excluir">🗑️</button>
+            </div>
+          </div>`;
+      });
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // ========== MODAL NOVO NASCIMENTO ==========
+  function novoNascimento() {
+    document.getElementById('nasc-id').value = '';
+    document.getElementById('modal-nasc-titulo').textContent = '🐣 Registrar Nascimento';
+    document.getElementById('form-nascimento').reset();
+    document.getElementById('nasc-data').value = new Date().toISOString().split('T')[0];
+    document.getElementById('nasc-criar-animal').checked = true;
+    preencherSelect('nasc-raca', RACAS);
+    preencherSelect('nasc-tipo-cob', TIPOS_COBERTURA);
+    preencherSelectAnimais('nasc-mae', { sexo: 'fêmea', status: 'ativo' });
+    preencherSelectAnimais('nasc-doadora', { sexo: 'fêmea', status: 'ativo' });
+    preencherSelectAnimais('nasc-receptora', { sexo: 'fêmea', status: 'ativo' });
+    document.getElementById('secao-te-nasc').style.display = 'none';
+    abrirModal('modal-nascimento');
+  }
+
+  function editarNascimento(id) {
+    const n = DB.nascimentos.buscarPorId(id);
+    if (!n) return;
+    document.getElementById('nasc-id').value = n.id;
+    document.getElementById('modal-nasc-titulo').textContent = '✏️ Editar Nascimento';
+
+    document.getElementById('nasc-data').value = n.dataNascimento || '';
+    document.getElementById('nasc-sexo').value = n.sexo || '';
+    preencherSelect('nasc-raca', RACAS, n.raca);
+    document.getElementById('nasc-grau').value = n.grauSangue || '';
+    document.getElementById('nasc-peso').value = n.pesoNascimento || '';
+    preencherSelectAnimais('nasc-mae', { sexo: 'fêmea', status: 'ativo' }, n.maeId);
+    document.getElementById('nasc-pai').value = n.pai || '';
+    document.getElementById('nasc-brinco-pai').value = n.brincoPai || '';
+    preencherSelect('nasc-tipo-cob', TIPOS_COBERTURA, n.tipoCobertura);
+    preencherSelectAnimais('nasc-doadora', { sexo: 'fêmea', status: 'ativo' }, n.doadoraId);
+    preencherSelectAnimais('nasc-receptora', { sexo: 'fêmea', status: 'ativo' }, n.receptoraId);
+    document.getElementById('nasc-obs').value = n.observacoes || '';
+    document.getElementById('nasc-criar-animal').checked = false;
+    toggleCamposTE();
+    abrirModal('modal-nascimento');
+  }
+
+  function toggleCamposTE() {
+    const tipo = document.getElementById('nasc-tipo-cob').value;
+    const ehTE = ['TE', 'FIV'].includes(tipo);
+    document.getElementById('secao-te-nasc').style.display = ehTE ? 'block' : 'none';
+    document.getElementById('grupo-receptora').style.display = tipo === 'TE' ? 'block' : 'none';
+  }
+
+  function preencherDadosDaMae() {
+    const maeId = document.getElementById('nasc-mae').value;
+    if (!maeId) return;
+    const mae = DB.animais.buscarPorId(maeId);
+    if (!mae) return;
+
+    // Se não houver raça selecionada, sugerir a da mãe
+    if (!document.getElementById('nasc-raca').value && mae.raca) {
+      preencherSelect('nasc-raca', RACAS, mae.raca);
+    }
+
+    // Tentar preencher tipo de cobertura da última cobertura desta matriz
+    const coberturas = DB.coberturas.listar().filter(c => (c.matrizIds || []).includes(maeId));
+    if (coberturas.length > 0) {
+      const ultima = coberturas[0];
+      if (!document.getElementById('nasc-tipo-cob').value) {
+        preencherSelect('nasc-tipo-cob', TIPOS_COBERTURA, ultima.tipo);
+        if (ultima.touro) document.getElementById('nasc-pai').value = ultima.touro;
+        toggleCamposTE();
+      }
+    }
+  }
+
+  function salvarNascimento(e) {
+    e.preventDefault();
+    const id = document.getElementById('nasc-id').value;
+    const criarAnimal = document.getElementById('nasc-criar-animal').checked;
+
+    const nasc = {
+      dataNascimento: document.getElementById('nasc-data').value,
+      sexo: document.getElementById('nasc-sexo').value,
+      raca: document.getElementById('nasc-raca').value || null,
+      grauSangue: document.getElementById('nasc-grau').value.trim() || null,
+      pesoNascimento: parseFloat(document.getElementById('nasc-peso').value) || null,
+      maeId: document.getElementById('nasc-mae').value || null,
+      pai: document.getElementById('nasc-pai').value.trim() || null,
+      brincoPai: document.getElementById('nasc-brinco-pai').value.trim() || null,
+      tipoCobertura: document.getElementById('nasc-tipo-cob').value || null,
+      doadoraId: document.getElementById('nasc-doadora').value || null,
+      receptoraId: document.getElementById('nasc-receptora').value || null,
+      observacoes: document.getElementById('nasc-obs').value.trim() || null,
+    };
+    if (id) nasc.id = id;
+
+    const nascSalvo = DB.nascimentos.salvar(nasc);
+
+    // Criar animal automaticamente se checkbox marcado e é novo nascimento
+    if (criarAnimal && !id) {
+      const mae = nasc.maeId ? DB.animais.buscarPorId(nasc.maeId) : null;
+      const animal = {
+        dataNascimento: nasc.dataNascimento,
+        sexo: nasc.sexo,
+        raca: nasc.raca || null,
+        grauSangue: nasc.grauSangue || null,
+        pesoNascimento: nasc.pesoNascimento || null,
+        pesoAtual: nasc.pesoNascimento || null,
+        maeId: nasc.maeId || null,
+        pai: nasc.pai || null,
+        brincoPai: nasc.brincoPai || null,
+        origem: 'nascimento',
+        nascimentoId: nascSalvo.id,
+        status: 'ativo',
+        categoria: nasc.sexo === 'macho' ? 'Terneiro' : 'Terneira',
+        // Herdar local/lote da mãe
+        localId: mae ? mae.localId : null,
+        loteId: mae ? mae.loteId : null,
+      };
+      const animalSalvo = DB.animais.salvar(animal);
+      // Vincular animal ao nascimento
+      nascSalvo.animalId = animalSalvo.id;
+      DB.nascimentos.salvar(nascSalvo);
+      mostrarToast('Nascimento registrado e animal criado automaticamente!', 'sucesso');
+    } else {
+      mostrarToast(id ? 'Nascimento atualizado!' : 'Nascimento registrado!', 'sucesso');
+    }
+
+    fecharModal('modal-nascimento');
+    carregarStats();
+    preencherFiltroAnos();
+    renderNascimentos();
+  }
+
+  function excluirNascimento(id) {
+    if (!confirmar('Excluir este nascimento?\n\nNota: o animal criado automaticamente NÃO será excluído.')) return;
+    DB.nascimentos.excluir(id);
+    mostrarToast('Nascimento excluído.', 'sucesso');
+    carregarStats();
+    renderNascimentos();
+  }
+
+  // ========== VER NASCIMENTO ==========
+  function verNascimento(id) {
+    const n = DB.nascimentos.buscarPorId(id);
+    if (!n) return;
+    const isMacho = n.sexo === 'macho';
+    const sexoIcon = isMacho ? '♂️ Macho' : (n.sexo === 'fêmea' ? '♀️ Fêmea' : n.sexo);
+
+    document.getElementById('detalhe-nascimento').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="grid-2">
+          <div><span style="color:var(--cinza);font-size:0.78rem">DATA DE NASCIMENTO</span><br><strong>${formatarData(n.dataNascimento)}</strong></div>
+          <div><span style="color:var(--cinza);font-size:0.78rem">SEXO</span><br><strong>${sexoIcon}</strong></div>
+        </div>
+        ${n.raca || n.grauSangue ? `<div class="grid-2">
+          ${n.raca ? `<div><span style="color:var(--cinza);font-size:0.78rem">RAÇA</span><br>${badgeRaca(n.raca)}</div>` : ''}
+          ${n.grauSangue ? `<div><span style="color:var(--cinza);font-size:0.78rem">GRAU DE SANGUE</span><br><strong>${escHtml(n.grauSangue)}</strong></div>` : ''}
+        </div>` : ''}
+        ${n.pesoNascimento ? `<div><span style="color:var(--cinza);font-size:0.78rem">PESO AO NASCER</span><br><strong>${parseFloat(n.pesoNascimento).toLocaleString('pt-BR', {minimumFractionDigits:1})} kg</strong></div>` : ''}
+        <div class="divisor"></div>
+        <p style="font-weight:700;font-size:0.85rem;color:var(--verde-escuro)">👨‍👩‍👧 Parentesco</p>
+        <div class="grid-2">
+          <div><span style="color:var(--cinza);font-size:0.78rem">MÃE</span><br><strong>${n.maeId ? nomeAnimal(n.maeId) : (n.maeNome || '—')}</strong></div>
+          <div><span style="color:var(--cinza);font-size:0.78rem">PAI / REPRODUTOR</span><br><strong>${n.pai ? escHtml(n.pai) : '—'}</strong>${n.brincoPai ? `<br><span style="font-size:0.78rem;color:var(--cinza)">Brinco: ${escHtml(n.brincoPai)}</span>` : ''}</div>
+        </div>
+        ${n.tipoCobertura ? `<div><span style="color:var(--cinza);font-size:0.78rem">TIPO DE COBERTURA</span><br><span class="badge badge-azul">${n.tipoCobertura}</span></div>` : ''}
+        ${n.doadoraId ? `<div><span style="color:var(--cinza);font-size:0.78rem">DOADORA</span><br><strong>${nomeAnimal(n.doadoraId)}</strong></div>` : ''}
+        ${n.receptoraId ? `<div><span style="color:var(--cinza);font-size:0.78rem">RECEPTORA</span><br><strong>${nomeAnimal(n.receptoraId)}</strong></div>` : ''}
+        ${n.animalId ? `<div style="background:var(--verde-muito-claro);padding:10px 12px;border-radius:var(--raio);border-left:3px solid var(--verde-medio)"><span style="color:var(--cinza);font-size:0.78rem">ANIMAL CRIADO</span><br><strong style="color:var(--verde-escuro)">✅ ${nomeAnimal(n.animalId)}</strong></div>` : ''}
+        ${n.observacoes ? `<div><span style="color:var(--cinza);font-size:0.78rem">OBSERVAÇÕES</span><br><span style="font-style:italic">${escHtml(n.observacoes)}</span></div>` : ''}
+      </div>`;
+    abrirModal('modal-ver-nascimento');
+  }
+
+  // ========== HELPERS ==========
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // Inicializar
+  init();
+</script>
+</body>
+</html>

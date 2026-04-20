@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cabanha Pagliosa - Reprodução</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .secao-iatf {
+      background: var(--verde-muito-claro);
+      border: 1px solid var(--verde-claro);
+      border-radius: var(--raio);
+      padding: 16px;
+      margin-top: 4px;
+    }
+    .secao-ia {
+      background: #eef2fb;
+      border: 1px solid #c5d3ef;
+      border-radius: var(--raio);
+      padding: 16px;
+      margin-top: 4px;
+    }
+    .secao-te {
+      background: #fdf6e3;
+      border: 1px solid #f5e0a0;
+      border-radius: var(--raio);
+      padding: 16px;
+      margin-top: 4px;
+    }
+    .parto-urgente td { background: #fff5f5 !important; }
+    .parto-urgente .dias-parto {
+      color: var(--vermelho) !important;
+      font-weight: 700;
+    }
+    .parto-breve td { background: #fffbf0 !important; }
+    .parto-breve .dias-parto { color: var(--amarelo-escuro, #b45309) !important; font-weight: 600; }
+    .progresso-gestacao {
+      width: 100%;
+      background: var(--cinza-muito-claro);
+      border-radius: 99px;
+      height: 8px;
+      overflow: hidden;
+      min-width: 80px;
+    }
+    .progresso-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--verde-medio), var(--verde-escuro));
+    }
+    .progresso-fill.quase { background: linear-gradient(90deg, #f59e0b, #d97706); }
+    .progresso-fill.urgente { background: linear-gradient(90deg, var(--vermelho), #b91c1c); }
+    .badge-prenha { background: #e8d5f5; color: #6b21a8; }
+    .badge-vazia { background: #fef3c7; color: #92400e; }
+    .badge-inconclusivo { background: #e0e7ff; color: #3730a3; }
+    .campo-oculto { display: none !important; }
+    .select-multiplo {
+      min-height: 100px;
+      resize: vertical;
+    }
+    .info-box {
+      background: var(--verde-muito-claro);
+      border-left: 3px solid var(--verde-medio);
+      padding: 8px 12px;
+      border-radius: 0 var(--raio) var(--raio) 0;
+      font-size: 0.82rem;
+      color: var(--verde-escuro);
+      margin-top: 4px;
+    }
+    .prenhas-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐄</span>
+      <h1>Cabanha Pagliosa</h1>
+      <span>Sistema de Gestão do Rebanho</span>
+    </div>
+    <div class="sidebar-nav">
+      <span class="sidebar-secao">Principal</span>
+      <a href="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="animais.html"><span class="nav-icon">🐄</span> Animais</a>
+      <a href="locais.html"><span class="nav-icon">🗺️</span> Locais e Lotes</a>
+      <a href="movimentacoes.html"><span class="nav-icon">🔄</span> Movimentações</a>
+      <span class="sidebar-secao">Reprodução</span>
+      <a href="reproducao.html" class="ativo"><span class="nav-icon">🧬</span> Coberturas e IATF</a>
+      <a href="nascimentos.html"><span class="nav-icon">🐣</span> Nascimentos</a>
+      <span class="sidebar-secao">Saúde</span>
+      <a href="sanitario.html"><span class="nav-icon">💉</span> Manejo Sanitário</a>
+      <span class="sidebar-secao">Administrativo</span>
+      <a href="financeiro.html"><span class="nav-icon">💰</span> Financeiro</a>
+      <a href="vendas.html"><span class="nav-icon">🏷️</span> Vendas</a>
+      <a href="associacoes.html"><span class="nav-icon">📋</span> Associações</a>
+      <span class="sidebar-secao">Sistema</span>
+      <a href="configuracoes.html"><span class="nav-icon">⚙️</span> Configurações</a>
+    </div>
+  </nav>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo">🧬 Controle Reprodutivo</div>
+      <div class="topbar-acoes">
+        <button class="btn btn-primario" onclick="novaCobertura()">+ Registrar Cobertura/IATF</button>
+        <button class="btn btn-outline" onclick="novoDiagnostico()">+ Diagnóstico Gestação</button>
+      </div>
+    </div>
+
+    <div class="pagina">
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(160px,1fr))">
+        <div class="stat-card azul">
+          <span class="stat-icone">🧬</span>
+          <span class="stat-valor" id="stat-coberturas">0</span>
+          <span class="stat-label">Total Coberturas</span>
+        </div>
+        <div class="stat-card verde">
+          <span class="stat-icone">🤰</span>
+          <span class="stat-valor" id="stat-prenhas">0</span>
+          <span class="stat-label">Prenhas Ativas</span>
+        </div>
+        <div class="stat-card amarelo">
+          <span class="stat-icone">🐣</span>
+          <span class="stat-valor" id="stat-partos30">0</span>
+          <span class="stat-label">Partos em 30 dias</span>
+        </div>
+        <div class="stat-card marrom">
+          <span class="stat-icone">📈</span>
+          <span class="stat-valor" id="stat-taxa">—%</span>
+          <span class="stat-label">Taxa de Prenhez</span>
+          <span class="stat-sub">últimos 90 dias</span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab ativo" onclick="mudarTab('coberturas', this)">🧬 Coberturas</button>
+        <button class="tab" onclick="mudarTab('diagnosticos', this)">🔬 Diagnósticos</button>
+        <button class="tab" onclick="mudarTab('prenhas', this)">🤰 Matrizes Prenhas</button>
+      </div>
+
+      <!-- PAINEL COBERTURAS -->
+      <div id="painel-coberturas">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-titulo">Coberturas Registradas</span>
+            <div class="barra-busca" style="margin:0">
+              <span class="busca-icone">🔍</span>
+              <input type="text" class="campo-busca" id="busca-coberturas"
+                placeholder="Buscar..." oninput="renderCoberturas()">
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="lista-coberturas"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL DIAGNÓSTICOS -->
+      <div id="painel-diagnosticos" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-titulo">Diagnósticos de Gestação</span>
+            <div class="barra-busca" style="margin:0">
+              <span class="busca-icone">🔍</span>
+              <input type="text" class="campo-busca" id="busca-diagnosticos"
+                placeholder="Buscar..." oninput="renderDiagnosticos()">
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="lista-diagnosticos"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL PRENHAS -->
+      <div id="painel-prenhas" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-titulo">Matrizes Prenhas</span>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <span class="badge badge-vermelho" style="font-size:0.75rem">🔴 Parto ≤ 15 dias</span>
+              <span class="badge badge-amarelo" style="font-size:0.75rem">🟡 Parto ≤ 30 dias</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="lista-prenhas"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- NAV MOBILE -->
+<nav class="nav-mobile">
+  <ul class="nav-mobile-lista">
+    <li><a href="index.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+    <li><a href="animais.html"><span class="nav-icon">🐄</span>Animais</a></li>
+    <li><a href="reproducao.html" class="ativo"><span class="nav-icon">🧬</span>Reprodução</a></li>
+    <li><a href="sanitario.html"><span class="nav-icon">💉</span>Saúde</a></li>
+    <li><a href="financeiro.html"><span class="nav-icon">💰</span>Financeiro</a></li>
+  </ul>
+</nav>
+
+<!-- MODAL COBERTURA -->
+<div class="modal-overlay" id="modal-cobertura">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <span id="modal-cob-titulo">🧬 Registrar Cobertura / IATF</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-cobertura')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-cobertura" onsubmit="salvarCobertura(event)">
+        <input type="hidden" id="cob-id">
+
+        <div class="grid-2">
+          <div class="form-grupo">
+            <label class="form-label">Tipo de Cobertura <span style="color:var(--vermelho)">*</span></label>
+            <select class="form-select" id="cob-tipo" onchange="atualizarCamposCobertura()" required>
+              <option value="">Selecionar...</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label" id="label-cob-data">Data <span style="color:var(--vermelho)">*</span></label>
+            <input type="date" class="form-input" id="cob-data" required>
+          </div>
+        </div>
+
+        <!-- Campos IATF -->
+        <div id="secao-iatf" class="secao-iatf campo-oculto">
+          <p style="font-weight:600;margin-bottom:10px;color:var(--verde-escuro)">🗓️ Protocolo IATF</p>
+          <div class="grid-2">
+            <div class="form-grupo" style="margin-bottom:8px">
+              <label class="form-label">D0 (início do protocolo)</label>
+              <input type="date" class="form-input" id="cob-d0">
+            </div>
+            <div class="form-grupo" style="margin-bottom:8px">
+              <label class="form-label">Retirada do Implante</label>
+              <input type="date" class="form-input" id="cob-retirada">
+            </div>
+          </div>
+          <div class="info-box">A "Data" principal acima será usada como data da inseminação para cálculo da previsão de parto.</div>
+        </div>
+
+        <!-- Campos IA -->
+        <div id="secao-inseminador" class="campo-oculto">
+          <div class="secao-ia">
+            <div class="grid-2">
+              <div class="form-grupo" style="margin-bottom:8px">
+                <label class="form-label">Sêmen Utilizado</label>
+                <input type="text" class="form-input" id="cob-semen" placeholder="Ex: 123456 - Touro A">
+              </div>
+              <div class="form-grupo" style="margin-bottom:8px">
+                <label class="form-label">Inseminador</label>
+                <input type="text" class="form-input" id="cob-inseminador" placeholder="Nome do inseminador">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos TE/FIV -->
+        <div id="secao-te" class="campo-oculto">
+          <div class="secao-te">
+            <div class="grid-2">
+              <div class="form-grupo" style="margin-bottom:8px">
+                <label class="form-label">Doadora</label>
+                <select class="form-select" id="cob-doadora">
+                  <option value="">Selecionar doadora...</option>
+                </select>
+              </div>
+              <div class="form-grupo" style="margin-bottom:8px">
+                <label class="form-label">Sêmen / Embrião</label>
+                <input type="text" class="form-input" id="cob-semen-te" placeholder="Identificação do sêmen/embrião">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Touro / Reprodutor</label>
+          <input type="text" class="form-input" id="cob-touro" placeholder="Nome ou identificação do reprodutor">
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Matrizes Envolvidas <span style="color:var(--vermelho)">*</span></label>
+          <select class="form-select select-multiplo" id="cob-matrizes" multiple required>
+          </select>
+          <div class="info-box" style="margin-top:6px">Segure Ctrl (ou Cmd no Mac) para selecionar múltiplas matrizes.</div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Observações</label>
+          <textarea class="form-textarea" id="cob-obs" rows="2" placeholder="Observações adicionais..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button type="button" class="btn btn-secundario" onclick="fecharModal('modal-cobertura')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">Salvar Cobertura</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DIAGNÓSTICO -->
+<div class="modal-overlay" id="modal-diagnostico">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <span id="modal-diag-titulo">🔬 Diagnóstico de Gestação</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-diagnostico')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-diagnostico" onsubmit="salvarDiagnostico(event)">
+        <input type="hidden" id="diag-id">
+
+        <div class="form-grupo">
+          <label class="form-label">Animal (Fêmea) <span style="color:var(--vermelho)">*</span></label>
+          <select class="form-select" id="diag-animal" required onchange="sugerirPrevisaoParto()">
+            <option value="">Selecionar animal...</option>
+          </select>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-grupo">
+            <label class="form-label">Data do Diagnóstico <span style="color:var(--vermelho)">*</span></label>
+            <input type="date" class="form-input" id="diag-data" required>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Resultado <span style="color:var(--vermelho)">*</span></label>
+            <select class="form-select" id="diag-resultado" required onchange="togglePrevisaoParto()">
+              <option value="">Selecionar...</option>
+              <option value="prenha">✅ Prenha</option>
+              <option value="vazia">❌ Vazia</option>
+              <option value="inconclusivo">❓ Inconclusivo</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="secao-previsao-parto" class="campo-oculto">
+          <div class="form-grupo">
+            <label class="form-label">Previsão de Parto</label>
+            <input type="date" class="form-input" id="diag-previsao-parto">
+            <div class="info-box" style="margin-top:6px">Calculada automaticamente (+280 dias da cobertura mais recente). Você pode editar manualmente.</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-grupo">
+            <label class="form-label">Técnica Utilizada</label>
+            <select class="form-select" id="diag-tecnica">
+              <option value="">Selecionar...</option>
+              <option value="Ultrassonografia">Ultrassonografia</option>
+              <option value="Palpação retal">Palpação retal</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Veterinário</label>
+            <input type="text" class="form-input" id="diag-vet" placeholder="Nome do veterinário">
+          </div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Observações</label>
+          <textarea class="form-textarea" id="diag-obs" rows="2" placeholder="Observações..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button type="button" class="btn btn-secundario" onclick="fecharModal('modal-diagnostico')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">Salvar Diagnóstico</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER COBERTURA -->
+<div class="modal-overlay" id="modal-ver-cobertura">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header">
+      <span>🧬 Detalhes da Cobertura</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-ver-cobertura')">✕</button>
+    </div>
+    <div class="modal-body" id="detalhe-cobertura"></div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  // ========== ESTADO ==========
+  let tabAtual = 'coberturas';
+
+  // ========== INICIALIZAÇÃO ==========
+  function init() {
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('cob-data').value = hoje;
+    document.getElementById('diag-data').value = hoje;
+
+    preencherSelect('cob-tipo', TIPOS_COBERTURA);
+    preencherSelectAnimais('cob-doadora', { sexo: 'fêmea', status: 'ativo' });
+
+    carregarStats();
+    renderCoberturas();
+    renderDiagnosticos();
+    renderPrenhas();
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('novo') === '1') novaCobertura();
+  }
+
+  // ========== TABS ==========
+  function mudarTab(tab, btn) {
+    tabAtual = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    ['coberturas','diagnosticos','prenhas'].forEach(p => {
+      document.getElementById('painel-' + p).style.display = p === tab ? 'block' : 'none';
+    });
+    if (tab === 'prenhas') renderPrenhas();
+    if (tab === 'diagnosticos') renderDiagnosticos();
+  }
+
+  // ========== STATS ==========
+  function carregarStats() {
+    const coberturas = DB.coberturas.listar();
+    const prenhas = DB.animais.listar({ status: 'prenha' });
+    const hoje = new Date();
+    const em30 = new Date(hoje); em30.setDate(hoje.getDate() + 30);
+    const em30Str = em30.toISOString().split('T')[0];
+    const hojeStr = hoje.toISOString().split('T')[0];
+
+    const partos30 = prenhas.filter(a => a.previsaoParto && a.previsaoParto >= hojeStr && a.previsaoParto <= em30Str).length;
+
+    // Taxa de prenhez: prenhas diagnosticadas / coberturas nos últimos 90 dias
+    const d90 = new Date(hoje); d90.setDate(hoje.getDate() - 90);
+    const d90Str = d90.toISOString().split('T')[0];
+    const cobRecentes = coberturas.filter(c => c.data >= d90Str);
+    const totalMatrizesCob = cobRecentes.reduce((acc, c) => {
+      const ids = c.matrizIds || [];
+      ids.forEach(id => { if (!acc.includes(id)) acc.push(id); });
+      return acc;
+    }, []).length;
+    const taxa = totalMatrizesCob > 0 ? Math.round((prenhas.length / totalMatrizesCob) * 100) : null;
+
+    document.getElementById('stat-coberturas').textContent = coberturas.length;
+    document.getElementById('stat-prenhas').textContent = prenhas.length;
+    document.getElementById('stat-partos30').textContent = partos30;
+    document.getElementById('stat-taxa').textContent = taxa !== null ? taxa + '%' : '—%';
+  }
+
+  // ========== RENDER COBERTURAS ==========
+  function renderCoberturas() {
+    const busca = (document.getElementById('busca-coberturas')?.value || '').toLowerCase();
+    let lista = DB.coberturas.listar();
+    if (busca) lista = lista.filter(c =>
+      (c.tipo || '').toLowerCase().includes(busca) ||
+      (c.touro || '').toLowerCase().includes(busca) ||
+      (c.data || '').includes(busca)
+    );
+
+    const container = document.getElementById('lista-coberturas');
+    if (lista.length === 0) {
+      container.innerHTML = `<div class="vazio"><span class="vazio-icone">🧬</span><p>${busca ? 'Nenhuma cobertura encontrada.' : 'Nenhuma cobertura registrada ainda.'}</p>${!busca ? '<button class="btn btn-primario" onclick="novaCobertura()">+ Registrar Cobertura</button>' : ''}</div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Touro/Rep.</th>
+              <th>Matrizes</th>
+              <th>Sêmen</th>
+              <th>Inseminador</th>
+              <th style="width:100px">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lista.map(c => {
+              const qtdMatrizes = (c.matrizIds || []).length;
+              return `<tr>
+                <td><strong>${formatarData(c.data)}</strong></td>
+                <td><span class="badge badge-azul">${c.tipo || '—'}</span></td>
+                <td>${c.touro ? escHtml(c.touro) : '<span style="color:var(--cinza)">—</span>'}</td>
+                <td><span style="font-weight:700">${qtdMatrizes}</span> matriz${qtdMatrizes !== 1 ? 'es' : ''}</td>
+                <td style="font-size:0.82rem">${c.semen || c.semenTe ? escHtml(c.semen || c.semenTe) : '<span style="color:var(--cinza)">—</span>'}</td>
+                <td style="font-size:0.82rem">${c.inseminador ? escHtml(c.inseminador) : '<span style="color:var(--cinza)">—</span>'}</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <button class="btn btn-sm btn-secundario" onclick="verCobertura('${c.id}')" title="Ver">👁️</button>
+                    <button class="btn btn-sm btn-outline" onclick="editarCobertura('${c.id}')" title="Editar">✏️</button>
+                    <button class="btn btn-sm btn-perigo" onclick="excluirCobertura('${c.id}')" title="Excluir">🗑️</button>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  // ========== RENDER DIAGNÓSTICOS ==========
+  function renderDiagnosticos() {
+    const busca = (document.getElementById('busca-diagnosticos')?.value || '').toLowerCase();
+    let lista = DB.diagnosticos.listar();
+    if (busca) lista = lista.filter(d =>
+      nomeAnimal(d.animalId).toLowerCase().includes(busca) ||
+      (d.resultado || '').toLowerCase().includes(busca) ||
+      (d.data || '').includes(busca)
+    );
+
+    const container = document.getElementById('lista-diagnosticos');
+    if (lista.length === 0) {
+      container.innerHTML = `<div class="vazio"><span class="vazio-icone">🔬</span><p>${busca ? 'Nenhum diagnóstico encontrado.' : 'Nenhum diagnóstico registrado ainda.'}</p>${!busca ? '<button class="btn btn-primario" onclick="novoDiagnostico()">+ Registrar Diagnóstico</button>' : ''}</div>`;
+      return;
+    }
+
+    const badgeDiag = (r) => {
+      const m = { prenha: 'badge-prenha', vazia: 'badge-vazia', inconclusivo: 'badge-inconclusivo' };
+      const labels = { prenha: '✅ Prenha', vazia: '❌ Vazia', inconclusivo: '❓ Inconclusivo' };
+      return `<span class="badge ${m[r] || 'badge-cinza'}">${labels[r] || r}</span>`;
+    };
+
+    container.innerHTML = `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Animal</th>
+              <th>Data</th>
+              <th>Resultado</th>
+              <th>Prev. Parto</th>
+              <th>Técnica</th>
+              <th>Veterinário</th>
+              <th style="width:80px">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lista.map(d => `
+              <tr>
+                <td><strong>${nomeAnimal(d.animalId)}</strong></td>
+                <td>${formatarData(d.data)}</td>
+                <td>${badgeDiag(d.resultado)}</td>
+                <td>${d.previsaoParto ? formatarData(d.previsaoParto) : '<span style="color:var(--cinza)">—</span>'}</td>
+                <td style="font-size:0.82rem">${d.tecnica || '<span style="color:var(--cinza)">—</span>'}</td>
+                <td style="font-size:0.82rem">${d.veterinario ? escHtml(d.veterinario) : '<span style="color:var(--cinza)">—</span>'}</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <button class="btn btn-sm btn-outline" onclick="editarDiagnostico('${d.id}')" title="Editar">✏️</button>
+                    <button class="btn btn-sm btn-perigo" onclick="excluirDiagnostico('${d.id}')" title="Excluir">🗑️</button>
+                  </div>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  // ========== RENDER PRENHAS ==========
+  function renderPrenhas() {
+    const prenhas = DB.animais.listar({ status: 'prenha' });
+    const container = document.getElementById('lista-prenhas');
+    const hoje = new Date();
+    const hojeStr = hoje.toISOString().split('T')[0];
+
+    if (prenhas.length === 0) {
+      container.innerHTML = `<div class="vazio"><span class="vazio-icone">🤰</span><p>Nenhuma matriz prenha no momento.</p></div>`;
+      return;
+    }
+
+    // Ordenar por previsão de parto
+    const ordenadas = [...prenhas].sort((a, b) => {
+      if (!a.previsaoParto) return 1;
+      if (!b.previsaoParto) return -1;
+      return a.previsaoParto.localeCompare(b.previsaoParto);
+    });
+
+    container.innerHTML = `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Animal</th>
+              <th>Raça</th>
+              <th>Prev. Parto</th>
+              <th>Gestação</th>
+              <th>Dias Restantes</th>
+              <th style="width:80px">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ordenadas.map(a => {
+              let diasRestantes = null;
+              let pct = 0;
+              let rowClass = '';
+              let fillClass = '';
+              let diasHtml = '<span style="color:var(--cinza)">—</span>';
+
+              if (a.previsaoParto) {
+                const parto = new Date(a.previsaoParto + 'T00:00:00');
+                const diff = Math.ceil((parto - hoje) / 86400000);
+                diasRestantes = diff;
+
+                // Calcular % da gestação (280 dias total)
+                const diasGestados = 280 - diff;
+                pct = Math.max(0, Math.min(100, Math.round((diasGestados / 280) * 100)));
+
+                if (diff <= 0) {
+                  rowClass = 'parto-urgente';
+                  fillClass = 'urgente';
+                  diasHtml = `<span class="dias-parto">⚠️ ${Math.abs(diff)} dias atrás</span>`;
+                } else if (diff <= 15) {
+                  rowClass = 'parto-urgente';
+                  fillClass = 'urgente';
+                  diasHtml = `<span class="dias-parto">🔴 ${diff} dias</span>`;
+                } else if (diff <= 30) {
+                  rowClass = 'parto-breve';
+                  fillClass = 'quase';
+                  diasHtml = `<span class="dias-parto">🟡 ${diff} dias</span>`;
+                } else {
+                  diasHtml = `<span class="dias-parto" style="color:var(--verde-escuro)">${diff} dias</span>`;
+                }
+              }
+
+              return `<tr class="${rowClass}">
+                <td>
+                  <strong>${a.numero || '—'}</strong>
+                  ${a.nome ? '<br><span style="font-size:0.8rem;color:var(--cinza)">' + escHtml(a.nome) + '</span>' : ''}
+                </td>
+                <td>${badgeRaca(a.raca)}</td>
+                <td>${a.previsaoParto ? formatarData(a.previsaoParto) : '<span style="color:var(--cinza)">—</span>'}</td>
+                <td>
+                  ${a.previsaoParto ? `
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <div class="progresso-gestacao">
+                        <div class="progresso-fill ${fillClass}" style="width:${pct}%"></div>
+                      </div>
+                      <span style="font-size:0.75rem;color:var(--cinza)">${pct}%</span>
+                    </div>` : '—'}
+                </td>
+                <td>${diasHtml}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline" onclick="novoDiagnostico('${a.id}')" title="Novo diagnóstico">🔬</button>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  // ========== MODAL COBERTURA ==========
+  function novaCobertura() {
+    document.getElementById('cob-id').value = '';
+    document.getElementById('modal-cob-titulo').textContent = '🧬 Registrar Cobertura / IATF';
+    document.getElementById('form-cobertura').reset();
+    preencherSelect('cob-tipo', TIPOS_COBERTURA);
+    preencherSelectAnimais('cob-matrizes', { sexo: 'fêmea', status: 'ativo' });
+    preencherSelectAnimais('cob-doadora', { sexo: 'fêmea', status: 'ativo' });
+    document.getElementById('cob-data').value = new Date().toISOString().split('T')[0];
+    atualizarCamposCobertura();
+    abrirModal('modal-cobertura');
+  }
+
+  function editarCobertura(id) {
+    const c = DB.coberturas.buscarPorId(id);
+    if (!c) return;
+    document.getElementById('cob-id').value = c.id;
+    document.getElementById('modal-cob-titulo').textContent = '✏️ Editar Cobertura';
+    preencherSelect('cob-tipo', TIPOS_COBERTURA, c.tipo);
+    document.getElementById('cob-data').value = c.data || '';
+    document.getElementById('cob-d0').value = c.dataD0 || '';
+    document.getElementById('cob-retirada').value = c.dataRetirada || '';
+    document.getElementById('cob-touro').value = c.touro || '';
+    document.getElementById('cob-semen').value = c.semen || '';
+    document.getElementById('cob-inseminador').value = c.inseminador || '';
+    document.getElementById('cob-semen-te').value = c.semenTe || '';
+    document.getElementById('cob-obs').value = c.observacoes || '';
+    preencherSelectAnimais('cob-matrizes', { sexo: 'fêmea', status: 'ativo' });
+    preencherSelectAnimais('cob-doadora', { sexo: 'fêmea', status: 'ativo' }, c.doadoraId);
+    // Selecionar matrizes
+    if (c.matrizIds) {
+      const sel = document.getElementById('cob-matrizes');
+      Array.from(sel.options).forEach(opt => {
+        opt.selected = c.matrizIds.includes(opt.value);
+      });
+    }
+    atualizarCamposCobertura();
+    abrirModal('modal-cobertura');
+  }
+
+  function atualizarCamposCobertura() {
+    const tipo = document.getElementById('cob-tipo').value;
+    const secIatf = document.getElementById('secao-iatf');
+    const secIns = document.getElementById('secao-inseminador');
+    const secTe = document.getElementById('secao-te');
+
+    secIatf.classList.toggle('campo-oculto', tipo !== 'IATF');
+    secIns.classList.toggle('campo-oculto', !['Inseminação Artificial (IA)', 'IATF'].includes(tipo));
+    secTe.classList.toggle('campo-oculto', !['TE', 'FIV'].includes(tipo));
+
+    const labelData = document.getElementById('label-cob-data');
+    if (tipo === 'IATF') {
+      labelData.innerHTML = 'Data da Inseminação <span style="color:var(--vermelho)">*</span>';
+    } else {
+      labelData.innerHTML = 'Data <span style="color:var(--vermelho)">*</span>';
+    }
+  }
+
+  function salvarCobertura(e) {
+    e.preventDefault();
+    const id = document.getElementById('cob-id').value;
+    const sel = document.getElementById('cob-matrizes');
+    const matrizIds = Array.from(sel.selectedOptions).map(o => o.value);
+
+    if (matrizIds.length === 0) {
+      mostrarToast('Selecione pelo menos uma matriz!', 'aviso');
+      return;
+    }
+
+    const cob = {
+      tipo: document.getElementById('cob-tipo').value,
+      data: document.getElementById('cob-data').value,
+      dataD0: document.getElementById('cob-d0').value || null,
+      dataRetirada: document.getElementById('cob-retirada').value || null,
+      touro: document.getElementById('cob-touro').value.trim() || null,
+      semen: document.getElementById('cob-semen').value.trim() || null,
+      inseminador: document.getElementById('cob-inseminador').value.trim() || null,
+      doadoraId: document.getElementById('cob-doadora').value || null,
+      semenTe: document.getElementById('cob-semen-te').value.trim() || null,
+      matrizIds,
+      observacoes: document.getElementById('cob-obs').value.trim() || null,
+    };
+    if (id) cob.id = id;
+    DB.coberturas.salvar(cob);
+    fecharModal('modal-cobertura');
+    mostrarToast(id ? 'Cobertura atualizada!' : `Cobertura registrada para ${matrizIds.length} matriz(es)!`, 'sucesso');
+    carregarStats();
+    renderCoberturas();
+  }
+
+  function excluirCobertura(id) {
+    if (!confirmar('Excluir esta cobertura?')) return;
+    DB.coberturas.excluir(id);
+    mostrarToast('Cobertura excluída.', 'sucesso');
+    carregarStats();
+    renderCoberturas();
+  }
+
+  function verCobertura(id) {
+    const c = DB.coberturas.buscarPorId(id);
+    if (!c) return;
+    const matrizes = (c.matrizIds || []).map(mid => nomeAnimal(mid));
+    document.getElementById('detalhe-cobertura').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="grid-2">
+          <div><span style="color:var(--cinza);font-size:0.8rem">TIPO</span><br><strong>${c.tipo}</strong></div>
+          <div><span style="color:var(--cinza);font-size:0.8rem">DATA</span><br><strong>${formatarData(c.data)}</strong></div>
+        </div>
+        ${c.dataD0 ? `<div class="grid-2">
+          <div><span style="color:var(--cinza);font-size:0.8rem">D0</span><br><strong>${formatarData(c.dataD0)}</strong></div>
+          ${c.dataRetirada ? `<div><span style="color:var(--cinza);font-size:0.8rem">RETIRADA IMPLANTE</span><br><strong>${formatarData(c.dataRetirada)}</strong></div>` : ''}
+        </div>` : ''}
+        ${c.touro ? `<div><span style="color:var(--cinza);font-size:0.8rem">TOURO/REPRODUTOR</span><br><strong>${escHtml(c.touro)}</strong></div>` : ''}
+        ${c.semen || c.semenTe ? `<div><span style="color:var(--cinza);font-size:0.8rem">SÊMEN</span><br><strong>${escHtml(c.semen || c.semenTe)}</strong></div>` : ''}
+        ${c.inseminador ? `<div><span style="color:var(--cinza);font-size:0.8rem">INSEMINADOR</span><br><strong>${escHtml(c.inseminador)}</strong></div>` : ''}
+        ${c.doadoraId ? `<div><span style="color:var(--cinza);font-size:0.8rem">DOADORA</span><br><strong>${nomeAnimal(c.doadoraId)}</strong></div>` : ''}
+        <div>
+          <span style="color:var(--cinza);font-size:0.8rem">MATRIZES (${matrizes.length})</span>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+            ${matrizes.map(m => `<span class="badge badge-verde">${m}</span>`).join('')}
+          </div>
+        </div>
+        ${c.observacoes ? `<div><span style="color:var(--cinza);font-size:0.8rem">OBSERVAÇÕES</span><br>${escHtml(c.observacoes)}</div>` : ''}
+      </div>`;
+    abrirModal('modal-ver-cobertura');
+  }
+
+  // ========== MODAL DIAGNÓSTICO ==========
+  function novoDiagnostico(animalIdPre = '') {
+    document.getElementById('diag-id').value = '';
+    document.getElementById('modal-diag-titulo').textContent = '🔬 Diagnóstico de Gestação';
+    document.getElementById('form-diagnostico').reset();
+    preencherSelectAnimais('diag-animal', { sexo: 'fêmea' }, animalIdPre);
+    document.getElementById('diag-data').value = new Date().toISOString().split('T')[0];
+    document.getElementById('secao-previsao-parto').classList.add('campo-oculto');
+    abrirModal('modal-diagnostico');
+    if (animalIdPre) sugerirPrevisaoParto();
+  }
+
+  function editarDiagnostico(id) {
+    const d = DB.diagnosticos.listar().find(x => x.id === id);
+    if (!d) return;
+    document.getElementById('diag-id').value = d.id;
+    document.getElementById('modal-diag-titulo').textContent = '✏️ Editar Diagnóstico';
+    preencherSelectAnimais('diag-animal', { sexo: 'fêmea' }, d.animalId);
+    document.getElementById('diag-data').value = d.data || '';
+    document.getElementById('diag-resultado').value = d.resultado || '';
+    document.getElementById('diag-previsao-parto').value = d.previsaoParto || '';
+    document.getElementById('diag-tecnica').value = d.tecnica || '';
+    document.getElementById('diag-vet').value = d.veterinario || '';
+    document.getElementById('diag-obs').value = d.observacoes || '';
+    togglePrevisaoParto();
+    abrirModal('modal-diagnostico');
+  }
+
+  function togglePrevisaoParto() {
+    const resultado = document.getElementById('diag-resultado').value;
+    const secao = document.getElementById('secao-previsao-parto');
+    secao.classList.toggle('campo-oculto', resultado !== 'prenha');
+    if (resultado === 'prenha' && !document.getElementById('diag-previsao-parto').value) {
+      sugerirPrevisaoParto();
+    }
+  }
+
+  function sugerirPrevisaoParto() {
+    const animalId = document.getElementById('diag-animal').value;
+    if (!animalId) return;
+    // Buscar cobertura mais recente desta matriz
+    const coberturas = DB.coberturas.listar().filter(c =>
+      (c.matrizIds || []).includes(animalId)
+    );
+    if (coberturas.length > 0) {
+      const ultima = coberturas[0]; // já ordenado por data desc
+      const previsao = calcularPrevisaoParto(ultima.data);
+      if (previsao) document.getElementById('diag-previsao-parto').value = previsao;
+    }
+  }
+
+  function salvarDiagnostico(e) {
+    e.preventDefault();
+    const id = document.getElementById('diag-id').value;
+    const diag = {
+      animalId: document.getElementById('diag-animal').value,
+      data: document.getElementById('diag-data').value,
+      resultado: document.getElementById('diag-resultado').value,
+      previsaoParto: document.getElementById('diag-previsao-parto').value || null,
+      tecnica: document.getElementById('diag-tecnica').value || null,
+      veterinario: document.getElementById('diag-vet').value.trim() || null,
+      observacoes: document.getElementById('diag-obs').value.trim() || null,
+    };
+    if (id) diag.id = id;
+    DB.diagnosticos.salvar(diag);
+    fecharModal('modal-diagnostico');
+    const labels = { prenha: '✅ Prenha', vazia: '❌ Vazia', inconclusivo: '❓ Inconclusivo' };
+    mostrarToast(`Diagnóstico registrado: ${labels[diag.resultado] || diag.resultado}`, 'sucesso');
+    carregarStats();
+    renderDiagnosticos();
+    renderPrenhas();
+  }
+
+  function excluirDiagnostico(id) {
+    if (!confirmar('Excluir este diagnóstico?')) return;
+    const lista = DB.diagnosticos.listar().filter(d => d.id !== id);
+    DB._set('diagnosticos', lista);
+    mostrarToast('Diagnóstico excluído.', 'sucesso');
+    carregarStats();
+    renderDiagnosticos();
+    renderPrenhas();
+  }
+
+  // ========== HELPERS ==========
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // Inicializar
+  init();
+</script>
+</body>
+</html>

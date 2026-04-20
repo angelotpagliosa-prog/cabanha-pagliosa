@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Associações - Cabanha Pagliosa</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .badge-pendente { background: #FFF8E1; color: #F9A825; border-radius: 20px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; }
+    .badge-enviado  { background: var(--azul-claro); color: var(--azul); border-radius: 20px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; }
+    .badge-registrado { background: var(--verde-muito-claro); color: var(--verde-escuro); border-radius: 20px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; }
+    .comunicado-item {
+      background: var(--branco);
+      border-radius: var(--raio);
+      padding: 14px 16px;
+      box-shadow: var(--sombra);
+      margin-bottom: 10px;
+      border-left: 4px solid var(--azul);
+    }
+    .comunicado-item.nascimento { border-left-color: var(--verde); }
+    .comunicado-item.cobertura { border-left-color: #6A1B9A; }
+    .comunicado-tipo { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--cinza); margin-bottom: 4px; }
+    .comunicado-titulo { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+    .comunicado-detalhe { font-size: 0.83rem; color: var(--cinza-escuro); line-height: 1.6; }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐄</span>
+      <h1>Cabanha Pagliosa</h1>
+      <span>Sistema de Gestão do Rebanho</span>
+    </div>
+    <div class="sidebar-nav">
+      <span class="sidebar-secao">Principal</span>
+      <a href="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="animais.html"><span class="nav-icon">🐄</span> Animais</a>
+      <a href="locais.html"><span class="nav-icon">🗺️</span> Locais e Lotes</a>
+      <a href="movimentacoes.html"><span class="nav-icon">🔄</span> Movimentações</a>
+      <span class="sidebar-secao">Reprodução</span>
+      <a href="reproducao.html"><span class="nav-icon">🧬</span> Coberturas e IATF</a>
+      <a href="nascimentos.html"><span class="nav-icon">🐣</span> Nascimentos</a>
+      <span class="sidebar-secao">Saúde</span>
+      <a href="sanitario.html"><span class="nav-icon">💉</span> Manejo Sanitário</a>
+      <span class="sidebar-secao">Administrativo</span>
+      <a href="financeiro.html"><span class="nav-icon">💰</span> Financeiro</a>
+      <a href="vendas.html"><span class="nav-icon">🏷️</span> Vendas</a>
+      <a href="associacoes.html" class="ativo"><span class="nav-icon">📋</span> Associações</a>
+      <span class="sidebar-secao">Sistema</span>
+      <a href="configuracoes.html"><span class="nav-icon">⚙️</span> Configurações</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo">📋 Associações e Registros</div>
+      <div class="topbar-acoes">
+        <button class="btn btn-primario" id="btn-novo-acao" onclick="abrirModalNovo()">+ Novo Registro</button>
+      </div>
+    </div>
+
+    <div class="pagina">
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+        <div class="stat-card verde">
+          <span class="stat-icone">📋</span>
+          <span class="stat-valor" id="st-total-reg">0</span>
+          <span class="stat-label">Total Registros</span>
+        </div>
+        <div class="stat-card amarelo">
+          <span class="stat-icone">⏳</span>
+          <span class="stat-valor" id="st-pendentes-reg">0</span>
+          <span class="stat-label">Pendentes</span>
+        </div>
+        <div class="stat-card azul">
+          <span class="stat-icone">📤</span>
+          <span class="stat-valor" id="st-enviados-reg">0</span>
+          <span class="stat-label">Enviados</span>
+        </div>
+        <div class="stat-card verde">
+          <span class="stat-icone">✅</span>
+          <span class="stat-valor" id="st-registrados-reg">0</span>
+          <span class="stat-label">Registrados</span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab ativo" onclick="trocarTab('registros', this)">📋 Registros</button>
+        <button class="tab" onclick="trocarTab('comunicados', this)">📨 Comunicados</button>
+      </div>
+
+      <!-- Tab: Registros -->
+      <div id="tab-registros">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div class="form-grupo" style="flex:1;min-width:180px;margin:0">
+              <label class="form-label">Associação</label>
+              <select class="form-select" id="filtro-assoc" onchange="renderizarRegistros()">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="form-grupo" style="flex:1;min-width:140px;margin:0">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="filtro-status-reg" onchange="renderizarRegistros()">
+                <option value="">Todos</option>
+                <option value="pendente">Pendente</option>
+                <option value="enviado">Enviado</option>
+                <option value="registrado">Registrado</option>
+              </select>
+            </div>
+            <button class="btn btn-secundario" onclick="limparFiltrosReg()">Limpar</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body" id="tabela-registros-wrapper">
+            <div class="vazio"><span class="vazio-icone">📋</span><p>Nenhum registro encontrado.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Comunicados -->
+      <div id="tab-comunicados" style="display:none">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div class="form-grupo" style="flex:1;min-width:180px;margin:0">
+              <label class="form-label">Associação</label>
+              <select class="form-select" id="filtro-com-assoc" onchange="renderizarComunicados()">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="form-grupo" style="flex:1;min-width:150px;margin:0">
+              <label class="form-label">Raça</label>
+              <select class="form-select" id="filtro-com-raca" onchange="renderizarComunicados()">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="form-grupo" style="flex:1;min-width:130px;margin:0">
+              <label class="form-label">Data início</label>
+              <input type="date" class="form-input" id="filtro-com-data-i" onchange="renderizarComunicados()">
+            </div>
+            <div class="form-grupo" style="flex:1;min-width:130px;margin:0">
+              <label class="form-label">Data fim</label>
+              <input type="date" class="form-input" id="filtro-com-data-f" onchange="renderizarComunicados()">
+            </div>
+            <button class="btn btn-secundario" onclick="limparFiltrosCom()">Limpar</button>
+            <button class="btn btn-primario" onclick="exportarComunicados()">📥 Exportar Comunicados</button>
+          </div>
+        </div>
+        <div id="lista-comunicados">
+          <div class="vazio"><span class="vazio-icone">📨</span><p>Nenhum comunicado gerado.</p></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- NAV MOBILE -->
+<nav class="nav-mobile">
+  <ul class="nav-mobile-lista">
+    <li><a href="index.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+    <li><a href="animais.html"><span class="nav-icon">🐄</span>Animais</a></li>
+    <li><a href="reproducao.html"><span class="nav-icon">🧬</span>Reprodução</a></li>
+    <li><a href="sanitario.html"><span class="nav-icon">💉</span>Saúde</a></li>
+    <li><a href="financeiro.html"><span class="nav-icon">💰</span>Financeiro</a></li>
+  </ul>
+</nav>
+
+<!-- MODAL REGISTRO -->
+<div class="modal-overlay" id="modal-registro">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <span class="modal-titulo" id="modal-reg-titulo">📋 Novo Registro em Associação</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-registro')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-registro" onsubmit="salvarRegistro(event)">
+        <input type="hidden" id="reg-id">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-grupo" style="grid-column:span 2">
+            <label class="form-label">Animal *</label>
+            <select class="form-select" id="reg-animal-id" required>
+              <option value="">Selecione o animal...</option>
+            </select>
+          </div>
+          <div class="form-grupo" style="grid-column:span 2">
+            <label class="form-label">Associação *</label>
+            <select class="form-select" id="reg-associacao" required>
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Número de Registro</label>
+            <input type="text" class="form-input" id="reg-numero" placeholder="Ex: CH-123456">
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Data de Registro</label>
+            <input type="date" class="form-input" id="reg-data">
+          </div>
+          <div class="form-grupo" style="grid-column:span 2">
+            <label class="form-label">Status *</label>
+            <select class="form-select" id="reg-status" required>
+              <option value="pendente">⏳ Pendente</option>
+              <option value="enviado">📤 Enviado</option>
+              <option value="registrado">✅ Registrado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Documentos Pendentes</label>
+          <textarea class="form-textarea" id="reg-documentos" rows="2" placeholder="Liste os documentos que ainda precisam ser enviados..."></textarea>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Observações</label>
+          <textarea class="form-textarea" id="reg-obs" rows="2" placeholder="Observações adicionais..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modal-registro')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">💾 Salvar Registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  let tabAtiva = 'registros';
+
+  function init() {
+    preencherSelect('filtro-assoc', ASSOCIACOES);
+    preencherSelect('filtro-com-assoc', ASSOCIACOES);
+    preencherSelect('filtro-com-raca', RACAS);
+    preencherSelect('reg-associacao', ASSOCIACOES);
+    preencherSelectAnimais('reg-animal-id');
+    renderizarRegistros();
+    atualizarStats();
+  }
+
+  // ========== STATS ==========
+  function atualizarStats() {
+    const todos = DB.registros.listar();
+    const pendentes = todos.filter(r => r.status === 'pendente');
+    const enviados = todos.filter(r => r.status === 'enviado');
+    const registrados = todos.filter(r => r.status === 'registrado');
+
+    document.getElementById('st-total-reg').textContent = todos.length;
+    document.getElementById('st-pendentes-reg').textContent = pendentes.length;
+    document.getElementById('st-enviados-reg').textContent = enviados.length;
+    document.getElementById('st-registrados-reg').textContent = registrados.length;
+  }
+
+  // ========== TABS ==========
+  function trocarTab(tab, btn) {
+    tabAtiva = tab;
+    document.getElementById('tab-registros').style.display = tab === 'registros' ? 'block' : 'none';
+    document.getElementById('tab-comunicados').style.display = tab === 'comunicados' ? 'block' : 'none';
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+    btn.classList.add('ativo');
+
+    const btnNovo = document.getElementById('btn-novo-acao');
+    if (tab === 'registros') {
+      btnNovo.textContent = '+ Novo Registro';
+      btnNovo.onclick = abrirModalNovo;
+    } else {
+      btnNovo.style.display = 'none';
+    }
+
+    if (tab === 'comunicados') renderizarComunicados();
+  }
+
+  // ========== BADGE STATUS ==========
+  function badgeStatusReg(status) {
+    if (status === 'pendente') return '<span class="badge-pendente">⏳ Pendente</span>';
+    if (status === 'enviado') return '<span class="badge-enviado">📤 Enviado</span>';
+    if (status === 'registrado') return '<span class="badge-registrado">✅ Registrado</span>';
+    return `<span class="badge-cinza">${status}</span>`;
+  }
+
+  // ========== REGISTROS ==========
+  function renderizarRegistros() {
+    const assocFil = document.getElementById('filtro-assoc').value;
+    const statusFil = document.getElementById('filtro-status-reg').value;
+
+    let lista = DB.registros.listar();
+    if (assocFil) lista = lista.filter(r => r.associacao === assocFil);
+    if (statusFil) lista = lista.filter(r => r.status === statusFil);
+
+    const wrapper = document.getElementById('tabela-registros-wrapper');
+    if (lista.length === 0) {
+      wrapper.innerHTML = `<div class="vazio"><span class="vazio-icone">📋</span><p>Nenhum registro encontrado.</p></div>`;
+      return;
+    }
+
+    const linhas = lista.map(r => {
+      const animal = DB.animais.buscarPorId(r.animalId);
+      const nomeAni = animal
+        ? `${animal.numero || ''}${animal.nome ? ' - ' + animal.nome : ''}`
+        : '-';
+      const racaAni = animal ? badgeRaca(animal.raca) : '';
+
+      return `
+        <tr>
+          <td>
+            <strong>${nomeAni}</strong><br>
+            ${racaAni}
+          </td>
+          <td style="font-size:0.85rem">${r.associacao || '-'}</td>
+          <td>${r.numeroRegistro || '<span style="color:var(--cinza)">—</span>'}</td>
+          <td>${r.dataRegistro ? formatarData(r.dataRegistro) : '-'}</td>
+          <td>${badgeStatusReg(r.status)}</td>
+          <td style="font-size:0.82rem;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.documentosPendentes || '-'}</td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-secundario" onclick="editarRegistro('${r.id}')">✏️</button>
+              <button class="btn btn-sm btn-vermelho" onclick="excluirRegistro('${r.id}')">🗑️</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    wrapper.innerHTML = `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr><th>Animal</th><th>Associação</th><th>Nº Registro</th><th>Data</th><th>Status</th><th>Docs Pendentes</th><th>Ações</th></tr>
+          </thead>
+          <tbody>${linhas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function limparFiltrosReg() {
+    document.getElementById('filtro-assoc').value = '';
+    document.getElementById('filtro-status-reg').value = '';
+    renderizarRegistros();
+  }
+
+  // ========== COMUNICADOS ==========
+  function renderizarComunicados() {
+    const assocFil = document.getElementById('filtro-com-assoc').value;
+    const racaFil = document.getElementById('filtro-com-raca').value;
+    const dataI = document.getElementById('filtro-com-data-i').value;
+    const dataF = document.getElementById('filtro-com-data-f').value;
+
+    let nascimentos = DB.nascimentos.listar();
+    let coberturas = DB.coberturas.listar();
+
+    if (dataI) {
+      nascimentos = nascimentos.filter(n => n.dataNascimento >= dataI);
+      coberturas = coberturas.filter(c => c.data >= dataI);
+    }
+    if (dataF) {
+      nascimentos = nascimentos.filter(n => n.dataNascimento <= dataF);
+      coberturas = coberturas.filter(c => c.data <= dataF);
+    }
+    if (racaFil) {
+      nascimentos = nascimentos.filter(n => {
+        const a = DB.animais.buscarPorId(n.animalId);
+        return a && a.raca === racaFil;
+      });
+      coberturas = coberturas.filter(c => {
+        const a = DB.animais.buscarPorId(c.matrizId);
+        return a && a.raca === racaFil;
+      });
+    }
+
+    const container = document.getElementById('lista-comunicados');
+    const itens = [];
+
+    nascimentos.forEach(n => {
+      const animal = DB.animais.buscarPorId(n.animalId);
+      const mae = DB.animais.buscarPorId(n.maeId);
+      const pai = n.paiId ? DB.animais.buscarPorId(n.paiId) : null;
+
+      itens.push({
+        tipo: 'nascimento',
+        data: n.dataNascimento,
+        html: `
+          <div class="comunicado-item nascimento">
+            <div class="comunicado-tipo">🐣 Comunicado de Nascimento</div>
+            <div class="comunicado-titulo">
+              ${animal ? (animal.numero || animal.nome || 'Animal') : 'Animal'}
+              ${animal ? badgeRaca(animal.raca) : ''}
+            </div>
+            <div class="comunicado-detalhe">
+              <strong>Data de nascimento:</strong> ${formatarData(n.dataNascimento)}<br>
+              <strong>Raça:</strong> ${animal ? (animal.raca || '-') : '-'}<br>
+              <strong>Grau de sangue:</strong> ${animal ? (animal.grauSangue || '-') : '-'}<br>
+              <strong>Sexo:</strong> ${animal ? (animal.sexo || '-') : '-'}<br>
+              <strong>Mãe:</strong> ${mae ? ((mae.numero || '') + (mae.nome ? ' - ' + mae.nome : '')) : '-'}<br>
+              <strong>Pai/Sêmen:</strong> ${pai ? ((pai.numero || '') + (pai.nome ? ' - ' + pai.nome : '')) : (n.tourou || n.semen || '-')}<br>
+              <strong>Tipo de cobertura:</strong> ${n.tipoCobertura || '-'}
+            </div>
+          </div>`
+      });
+    });
+
+    coberturas.forEach(c => {
+      const matriz = DB.animais.buscarPorId(c.matrizId);
+      const touro = c.touroId ? DB.animais.buscarPorId(c.touroId) : null;
+
+      itens.push({
+        tipo: 'cobertura',
+        data: c.data,
+        html: `
+          <div class="comunicado-item cobertura">
+            <div class="comunicado-tipo">🧬 Comunicado de Cobertura</div>
+            <div class="comunicado-titulo">
+              ${matriz ? ((matriz.numero || '') + (matriz.nome ? ' - ' + matriz.nome : '')) : 'Matriz'}
+              ${matriz ? badgeRaca(matriz.raca) : ''}
+            </div>
+            <div class="comunicado-detalhe">
+              <strong>Data:</strong> ${formatarData(c.data)}<br>
+              <strong>Tipo:</strong> ${c.tipo || '-'}<br>
+              <strong>Touro/Sêmen:</strong> ${touro ? ((touro.numero || '') + (touro.nome ? ' - ' + touro.nome : '')) : (c.semen || c.touroNome || '-')}<br>
+              <strong>Matriz:</strong> ${matriz ? ((matriz.numero || '') + (matriz.nome ? ' - ' + matriz.nome : '')) : '-'}
+            </div>
+          </div>`
+      });
+    });
+
+    itens.sort((a, b) => b.data.localeCompare(a.data));
+
+    if (itens.length === 0) {
+      container.innerHTML = `<div class="vazio"><span class="vazio-icone">📨</span><p>Nenhum comunicado para os filtros selecionados.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = itens.map(i => i.html).join('');
+  }
+
+  function limparFiltrosCom() {
+    document.getElementById('filtro-com-assoc').value = '';
+    document.getElementById('filtro-com-raca').value = '';
+    document.getElementById('filtro-com-data-i').value = '';
+    document.getElementById('filtro-com-data-f').value = '';
+    renderizarComunicados();
+  }
+
+  // ========== EXPORTAR COMUNICADOS ==========
+  function exportarComunicados() {
+    const assocFil = document.getElementById('filtro-com-assoc').value;
+    const racaFil = document.getElementById('filtro-com-raca').value;
+    const dataI = document.getElementById('filtro-com-data-i').value;
+    const dataF = document.getElementById('filtro-com-data-f').value;
+
+    let nascimentos = DB.nascimentos.listar();
+    let coberturas = DB.coberturas.listar();
+
+    if (dataI) {
+      nascimentos = nascimentos.filter(n => n.dataNascimento >= dataI);
+      coberturas = coberturas.filter(c => c.data >= dataI);
+    }
+    if (dataF) {
+      nascimentos = nascimentos.filter(n => n.dataNascimento <= dataF);
+      coberturas = coberturas.filter(c => c.data <= dataF);
+    }
+    if (racaFil) {
+      nascimentos = nascimentos.filter(n => {
+        const a = DB.animais.buscarPorId(n.animalId);
+        return a && a.raca === racaFil;
+      });
+      coberturas = coberturas.filter(c => {
+        const a = DB.animais.buscarPorId(c.matrizId);
+        return a && a.raca === racaFil;
+      });
+    }
+
+    const config = (() => {
+      try { return JSON.parse(localStorage.getItem('cp_config') || '{}'); } catch { return {}; }
+    })();
+
+    const linhas = [];
+    linhas.push('CABANHA PAGLIOSA - COMUNICADOS ÀS ASSOCIAÇÕES');
+    linhas.push('='.repeat(60));
+    linhas.push(`Gerado em: ${new Date().toLocaleString('pt-BR')}`);
+    if (config.nomeFazenda) linhas.push(`Propriedade: ${config.nomeFazenda}`);
+    if (config.proprietario) linhas.push(`Proprietário: ${config.proprietario}`);
+    if (assocFil) linhas.push(`Associação: ${assocFil}`);
+    if (racaFil) linhas.push(`Raça: ${racaFil}`);
+    if (dataI || dataF) linhas.push(`Período: ${dataI ? formatarData(dataI) : 'Início'} a ${dataF ? formatarData(dataF) : 'Hoje'}`);
+    linhas.push('');
+
+    if (nascimentos.length > 0) {
+      linhas.push('COMUNICADOS DE NASCIMENTO');
+      linhas.push('-'.repeat(40));
+      nascimentos.forEach((n, i) => {
+        const animal = DB.animais.buscarPorId(n.animalId);
+        const mae = DB.animais.buscarPorId(n.maeId);
+        const pai = n.paiId ? DB.animais.buscarPorId(n.paiId) : null;
+        linhas.push(`\n[${i + 1}] Nascimento`);
+        linhas.push(`Data: ${formatarData(n.dataNascimento)}`);
+        linhas.push(`Animal: ${animal ? ((animal.numero || '') + (animal.nome ? ' - ' + animal.nome : '')) : '-'}`);
+        linhas.push(`Raça: ${animal ? (animal.raca || '-') : '-'}`);
+        linhas.push(`Grau de Sangue: ${animal ? (animal.grauSangue || '-') : '-'}`);
+        linhas.push(`Sexo: ${animal ? (animal.sexo || '-') : '-'}`);
+        linhas.push(`Mãe: ${mae ? ((mae.numero || '') + (mae.nome ? ' - ' + mae.nome : '')) : '-'}`);
+        linhas.push(`Pai/Sêmen: ${pai ? ((pai.numero || '') + (pai.nome ? ' - ' + pai.nome : '')) : (n.semen || n.tourou || '-')}`);
+        linhas.push(`Tipo de Cobertura: ${n.tipoCobertura || '-'}`);
+      });
+      linhas.push('');
+    }
+
+    if (coberturas.length > 0) {
+      linhas.push('COMUNICADOS DE COBERTURA');
+      linhas.push('-'.repeat(40));
+      coberturas.forEach((c, i) => {
+        const matriz = DB.animais.buscarPorId(c.matrizId);
+        const touro = c.touroId ? DB.animais.buscarPorId(c.touroId) : null;
+        linhas.push(`\n[${i + 1}] Cobertura`);
+        linhas.push(`Data: ${formatarData(c.data)}`);
+        linhas.push(`Tipo: ${c.tipo || '-'}`);
+        linhas.push(`Matriz: ${matriz ? ((matriz.numero || '') + (matriz.nome ? ' - ' + matriz.nome : '')) : '-'}`);
+        linhas.push(`Touro/Sêmen: ${touro ? ((touro.numero || '') + (touro.nome ? ' - ' + touro.nome : '')) : (c.semen || c.touroNome || '-')}`);
+      });
+      linhas.push('');
+    }
+
+    linhas.push('='.repeat(60));
+    linhas.push(`Total Nascimentos: ${nascimentos.length}`);
+    linhas.push(`Total Coberturas: ${coberturas.length}`);
+
+    const texto = linhas.join('\n');
+    const data = new Date().toISOString().split('T')[0];
+    baixarArquivo(texto, `comunicados-cabanha-pagliosa-${data}.txt`, 'text/plain;charset=utf-8');
+    mostrarToast('Comunicados exportados com sucesso!', 'sucesso');
+  }
+
+  // ========== MODAL ==========
+  function abrirModalNovo() {
+    document.getElementById('modal-reg-titulo').textContent = '📋 Novo Registro em Associação';
+    document.getElementById('form-registro').reset();
+    document.getElementById('reg-id').value = '';
+    preencherSelectAnimais('reg-animal-id');
+    abrirModal('modal-registro');
+  }
+
+  function editarRegistro(id) {
+    const r = DB.registros.buscarPorId(id);
+    if (!r) return;
+    document.getElementById('modal-reg-titulo').textContent = '✏️ Editar Registro';
+    document.getElementById('reg-id').value = r.id;
+    preencherSelectAnimais('reg-animal-id', {}, r.animalId || '');
+    document.getElementById('reg-associacao').value = r.associacao || '';
+    document.getElementById('reg-numero').value = r.numeroRegistro || '';
+    document.getElementById('reg-data').value = r.dataRegistro || '';
+    document.getElementById('reg-status').value = r.status || 'pendente';
+    document.getElementById('reg-documentos').value = r.documentosPendentes || '';
+    document.getElementById('reg-obs').value = r.observacoes || '';
+    abrirModal('modal-registro');
+  }
+
+  // ========== SALVAR ==========
+  function salvarRegistro(e) {
+    e.preventDefault();
+    const obj = {
+      id: document.getElementById('reg-id').value || undefined,
+      animalId: document.getElementById('reg-animal-id').value,
+      associacao: document.getElementById('reg-associacao').value,
+      numeroRegistro: document.getElementById('reg-numero').value.trim(),
+      dataRegistro: document.getElementById('reg-data').value || null,
+      status: document.getElementById('reg-status').value,
+      documentosPendentes: document.getElementById('reg-documentos').value.trim(),
+      observacoes: document.getElementById('reg-obs').value.trim(),
+    };
+    if (!obj.id) delete obj.id;
+    DB.registros.salvar(obj);
+    mostrarToast('Registro salvo com sucesso!', 'sucesso');
+    fecharModal('modal-registro');
+    renderizarRegistros();
+    atualizarStats();
+  }
+
+  // ========== EXCLUIR ==========
+  function excluirRegistro(id) {
+    if (!confirmar('Deseja excluir este registro de associação?')) return;
+    DB.registros.excluir(id);
+    mostrarToast('Registro excluído.', 'aviso');
+    renderizarRegistros();
+    atualizarStats();
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financeiro - Cabanha Pagliosa</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .badge-receita { background: var(--verde-muito-claro); color: var(--verde-escuro); border-radius: 20px; padding: 2px 10px; font-size: 0.8rem; font-weight: 600; }
+    .badge-despesa { background: var(--vermelho-claro); color: var(--vermelho); border-radius: 20px; padding: 2px 10px; font-size: 0.8rem; font-weight: 600; }
+    .resumo-card {
+      background: var(--branco);
+      border-radius: var(--raio);
+      padding: 20px;
+      box-shadow: var(--sombra);
+      text-align: center;
+    }
+    .resumo-card .valor { font-size: 1.8rem; font-weight: 800; margin: 8px 0 4px; }
+    .resumo-card .label { font-size: 0.85rem; color: var(--cinza); }
+    .resumo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .custo-bar { height: 8px; border-radius: 4px; background: var(--cinza-muito-claro); overflow: hidden; margin-top: 4px; }
+    .custo-bar-fill { height: 100%; background: var(--verde); border-radius: 4px; transition: width 0.4s; }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐄</span>
+      <h1>Cabanha Pagliosa</h1>
+      <span>Sistema de Gestão do Rebanho</span>
+    </div>
+    <div class="sidebar-nav">
+      <span class="sidebar-secao">Principal</span>
+      <a href="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="animais.html"><span class="nav-icon">🐄</span> Animais</a>
+      <a href="locais.html"><span class="nav-icon">🗺️</span> Locais e Lotes</a>
+      <a href="movimentacoes.html"><span class="nav-icon">🔄</span> Movimentações</a>
+      <span class="sidebar-secao">Reprodução</span>
+      <a href="reproducao.html"><span class="nav-icon">🧬</span> Coberturas e IATF</a>
+      <a href="nascimentos.html"><span class="nav-icon">🐣</span> Nascimentos</a>
+      <span class="sidebar-secao">Saúde</span>
+      <a href="sanitario.html"><span class="nav-icon">💉</span> Manejo Sanitário</a>
+      <span class="sidebar-secao">Administrativo</span>
+      <a href="financeiro.html" class="ativo"><span class="nav-icon">💰</span> Financeiro</a>
+      <a href="vendas.html"><span class="nav-icon">🏷️</span> Vendas</a>
+      <a href="associacoes.html"><span class="nav-icon">📋</span> Associações</a>
+      <span class="sidebar-secao">Sistema</span>
+      <a href="configuracoes.html"><span class="nav-icon">⚙️</span> Configurações</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo">💰 Financeiro</div>
+      <div class="topbar-acoes">
+        <button class="btn btn-primario" onclick="abrirModalNovo()">+ Novo Lançamento</button>
+      </div>
+    </div>
+
+    <div class="pagina">
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+        <div class="stat-card vermelho">
+          <span class="stat-icone">📉</span>
+          <span class="stat-valor" id="st-despesas">R$ 0</span>
+          <span class="stat-label">Total Despesas</span>
+        </div>
+        <div class="stat-card verde">
+          <span class="stat-icone">📈</span>
+          <span class="stat-valor" id="st-receitas">R$ 0</span>
+          <span class="stat-label">Total Receitas</span>
+        </div>
+        <div class="stat-card azul">
+          <span class="stat-icone">💰</span>
+          <span class="stat-valor" id="st-saldo">R$ 0</span>
+          <span class="stat-label">Saldo</span>
+        </div>
+        <div class="stat-card marrom">
+          <span class="stat-icone">🐄</span>
+          <span class="stat-valor" id="st-media">R$ 0</span>
+          <span class="stat-label">Custo Médio/Cabeça</span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab ativo" onclick="trocarTab('lancamentos', this)">📋 Lançamentos</button>
+        <button class="tab" onclick="trocarTab('custos-animal', this)">🐄 Custos por Animal</button>
+        <button class="tab" onclick="trocarTab('resumo', this)">📊 Resumo</button>
+      </div>
+
+      <!-- Tab: Lançamentos -->
+      <div id="tab-lancamentos">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div class="form-grupo" style="flex:1;min-width:140px;margin:0">
+              <label class="form-label">Tipo</label>
+              <select class="form-select" id="filtro-tipo-fin" onchange="renderizarLancamentos()">
+                <option value="">Todos</option>
+                <option value="despesa">Despesa</option>
+                <option value="receita">Receita</option>
+              </select>
+            </div>
+            <div class="form-grupo" style="flex:1;min-width:160px;margin:0">
+              <label class="form-label">Categoria</label>
+              <select class="form-select" id="filtro-cat-fin" onchange="renderizarLancamentos()">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="form-grupo" style="flex:1;min-width:130px;margin:0">
+              <label class="form-label">Data início</label>
+              <input type="date" class="form-input" id="filtro-data-fin-i" onchange="renderizarLancamentos()">
+            </div>
+            <div class="form-grupo" style="flex:1;min-width:130px;margin:0">
+              <label class="form-label">Data fim</label>
+              <input type="date" class="form-input" id="filtro-data-fin-f" onchange="renderizarLancamentos()">
+            </div>
+            <button class="btn btn-secundario" onclick="limparFiltrosFin()">Limpar</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body" id="tabela-lancamentos-wrapper">
+            <div class="vazio"><span class="vazio-icone">💰</span><p>Nenhum lançamento registrado.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Custos por Animal -->
+      <div id="tab-custos-animal" style="display:none">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div class="form-grupo" style="flex:1;min-width:160px;margin:0">
+              <label class="form-label">Raça</label>
+              <select class="form-select" id="filtro-raca-custo" onchange="renderizarCustosAnimal()">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="form-grupo" style="flex:1;min-width:180px;margin:0">
+              <label class="form-label">Categoria</label>
+              <select class="form-select" id="filtro-cat-custo" onchange="renderizarCustosAnimal()">
+                <option value="">Todas</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body" id="tabela-custos-wrapper">
+            <div class="vazio"><span class="vazio-icone">🐄</span><p>Nenhum dado encontrado.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Resumo -->
+      <div id="tab-resumo" style="display:none">
+        <div class="resumo-grid" id="resumo-cards"></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-titulo">📊 Despesas por Categoria</span></div>
+            <div class="card-body">
+              <div class="grafico-container" style="height:300px">
+                <canvas id="grafico-categorias"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-titulo">📋 Top Categorias</span></div>
+            <div class="card-body" id="top-categorias"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- NAV MOBILE -->
+<nav class="nav-mobile">
+  <ul class="nav-mobile-lista">
+    <li><a href="index.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+    <li><a href="animais.html"><span class="nav-icon">🐄</span>Animais</a></li>
+    <li><a href="reproducao.html"><span class="nav-icon">🧬</span>Reprodução</a></li>
+    <li><a href="sanitario.html"><span class="nav-icon">💉</span>Saúde</a></li>
+    <li><a href="financeiro.html" class="ativo"><span class="nav-icon">💰</span>Financeiro</a></li>
+  </ul>
+</nav>
+
+<!-- MODAL LANÇAMENTO -->
+<div class="modal-overlay" id="modal-lancamento">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header">
+      <span class="modal-titulo" id="modal-fin-titulo">💰 Novo Lançamento</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-lancamento')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-lancamento" onsubmit="salvarLancamento(event)">
+        <input type="hidden" id="fin-id">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-grupo">
+            <label class="form-label">Tipo *</label>
+            <select class="form-select" id="fin-tipo" required onchange="atualizarCorTipo()">
+              <option value="">Selecione...</option>
+              <option value="despesa">💸 Despesa</option>
+              <option value="receita">💵 Receita</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Categoria *</label>
+            <select class="form-select" id="fin-categoria" required>
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+          <div class="form-grupo" style="grid-column:span 2">
+            <label class="form-label">Descrição *</label>
+            <input type="text" class="form-input" id="fin-descricao" required placeholder="Descrição do lançamento">
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Valor (R$) *</label>
+            <input type="number" class="form-input" id="fin-valor" required min="0.01" step="0.01" placeholder="0,00" oninput="atualizarResultadoRateio()">
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Data *</label>
+            <input type="date" class="form-input" id="fin-data" required>
+          </div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Tipo de Alocação</label>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="alocacao" value="individual" onchange="alternarAlocacao()" checked> Individual
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="alocacao" value="lote" onchange="alternarAlocacao()"> Por Lote
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="alocacao" value="geral" onchange="alternarAlocacao()"> Geral
+            </label>
+          </div>
+        </div>
+
+        <div id="campo-fin-animal" class="form-grupo">
+          <label class="form-label">Animal</label>
+          <select class="form-select" id="fin-animal-id">
+            <option value="">Selecione o animal...</option>
+          </select>
+        </div>
+
+        <div id="campo-fin-lote" class="form-grupo" style="display:none">
+          <label class="form-label">Lote</label>
+          <select class="form-select" id="fin-lote-id" onchange="atualizarResultadoRateio()">
+            <option value="">Selecione o lote...</option>
+          </select>
+          <p id="info-rateio" style="font-size:0.82rem;color:var(--cinza);margin-top:4px"></p>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Observações</label>
+          <textarea class="form-textarea" id="fin-obs" rows="2" placeholder="Observações opcionais..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modal-lancamento')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">💾 Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  let grafCat = null;
+
+  function init() {
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('fin-data').value = hoje;
+
+    preencherSelect('filtro-cat-fin', CATEGORIAS_FINANCEIRO);
+    preencherSelect('fin-categoria', CATEGORIAS_FINANCEIRO);
+    preencherSelect('filtro-raca-custo', RACAS);
+    preencherSelect('filtro-cat-custo', CATEGORIAS);
+    preencherSelectAnimais('fin-animal-id');
+    preencherSelectLotes('fin-lote-id');
+
+    renderizarLancamentos();
+    atualizarStats();
+
+    if (location.search.includes('novo=1')) abrirModalNovo();
+  }
+
+  // ========== STATS ==========
+  function atualizarStats() {
+    const despesas = DB.financeiros.totalDespesas();
+    const receitas = DB.financeiros.totalReceitas();
+    const saldo = receitas - despesas;
+    const ativos = DB.animais.listar({ status: 'ativo' });
+    const media = ativos.length > 0 ? despesas / ativos.length : 0;
+
+    document.getElementById('st-despesas').textContent = formatarMoeda(despesas);
+    document.getElementById('st-receitas').textContent = formatarMoeda(receitas);
+    const saldoEl = document.getElementById('st-saldo');
+    saldoEl.textContent = formatarMoeda(saldo);
+    saldoEl.style.color = saldo >= 0 ? 'var(--verde)' : 'var(--vermelho)';
+    document.getElementById('st-media').textContent = formatarMoeda(media);
+  }
+
+  // ========== TABS ==========
+  function trocarTab(tab, btn) {
+    document.getElementById('tab-lancamentos').style.display = tab === 'lancamentos' ? 'block' : 'none';
+    document.getElementById('tab-custos-animal').style.display = tab === 'custos-animal' ? 'block' : 'none';
+    document.getElementById('tab-resumo').style.display = tab === 'resumo' ? 'block' : 'none';
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    if (tab === 'custos-animal') renderizarCustosAnimal();
+    if (tab === 'resumo') renderizarResumo();
+  }
+
+  // ========== LANÇAMENTOS ==========
+  function renderizarLancamentos() {
+    const tipoFil = document.getElementById('filtro-tipo-fin').value;
+    const catFil = document.getElementById('filtro-cat-fin').value;
+    const dataI = document.getElementById('filtro-data-fin-i').value;
+    const dataF = document.getElementById('filtro-data-fin-f').value;
+
+    let lista = DB.financeiros.listar();
+    if (tipoFil) lista = lista.filter(f => f.tipo === tipoFil);
+    if (catFil) lista = lista.filter(f => f.categoria === catFil);
+    if (dataI) lista = lista.filter(f => f.data >= dataI);
+    if (dataF) lista = lista.filter(f => f.data <= dataF);
+
+    const wrapper = document.getElementById('tabela-lancamentos-wrapper');
+    if (lista.length === 0) {
+      wrapper.innerHTML = `<div class="vazio"><span class="vazio-icone">💰</span><p>Nenhum lançamento encontrado.</p></div>`;
+      return;
+    }
+
+    const linhas = lista.map(f => {
+      const badge = f.tipo === 'receita'
+        ? '<span class="badge-receita">Receita</span>'
+        : '<span class="badge-despesa">Despesa</span>';
+      const alocacao = f.alocacao === 'individual'
+        ? nomeAnimal(f.animalId)
+        : f.alocacao === 'lote'
+          ? `Lote: ${nomeLote(f.loteId)}`
+          : 'Geral';
+      const corValor = f.tipo === 'receita' ? 'var(--verde)' : 'var(--vermelho)';
+      return `
+        <tr>
+          <td>${badge}</td>
+          <td>${f.categoria || '-'}</td>
+          <td>${f.descricao || '-'}</td>
+          <td style="font-weight:700;color:${corValor}">${formatarMoeda(f.valor)}</td>
+          <td>${formatarData(f.data)}</td>
+          <td style="font-size:0.82rem">${alocacao}</td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-secundario" onclick="editarLancamento('${f.id}')">✏️</button>
+              <button class="btn btn-sm btn-vermelho" onclick="excluirLancamento('${f.id}')">🗑️</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    wrapper.innerHTML = `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Data</th><th>Alocação</th><th>Ações</th></tr>
+          </thead>
+          <tbody>${linhas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function limparFiltrosFin() {
+    document.getElementById('filtro-tipo-fin').value = '';
+    document.getElementById('filtro-cat-fin').value = '';
+    document.getElementById('filtro-data-fin-i').value = '';
+    document.getElementById('filtro-data-fin-f').value = '';
+    renderizarLancamentos();
+  }
+
+  // ========== CUSTOS POR ANIMAL ==========
+  function renderizarCustosAnimal() {
+    const racaFil = document.getElementById('filtro-raca-custo').value;
+    const catFil = document.getElementById('filtro-cat-custo').value;
+
+    let animais = DB.animais.listar();
+    if (racaFil) animais = animais.filter(a => a.raca === racaFil);
+    if (catFil) animais = animais.filter(a => a.categoria === catFil);
+
+    const comCusto = animais.map(a => ({
+      ...a,
+      custo: DB.financeiros.custoDoAnimal(a.id)
+    })).sort((a, b) => b.custo - a.custo);
+
+    const wrapper = document.getElementById('tabela-custos-wrapper');
+    if (comCusto.length === 0) {
+      wrapper.innerHTML = `<div class="vazio"><span class="vazio-icone">🐄</span><p>Nenhum animal encontrado.</p></div>`;
+      return;
+    }
+
+    const maxCusto = comCusto[0].custo || 1;
+
+    const linhas = comCusto.map(a => {
+      const pct = Math.round((a.custo / maxCusto) * 100);
+      return `
+        <tr>
+          <td><strong>${a.numero || '-'}</strong>${a.nome ? '<br><small style="color:var(--cinza)">' + a.nome + '</small>' : ''}</td>
+          <td>${badgeRaca(a.raca)}</td>
+          <td>${chipSexo(a.sexo)}</td>
+          <td>${a.categoria || '-'}</td>
+          <td>${badgeStatus(a.status)}</td>
+          <td>
+            <strong style="color:var(--vermelho)">${formatarMoeda(a.custo)}</strong>
+            <div class="custo-bar"><div class="custo-bar-fill" style="width:${pct}%"></div></div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    wrapper.innerHTML = `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr><th>Animal</th><th>Raça</th><th>Sexo</th><th>Categoria</th><th>Status</th><th>Custo Acumulado</th></tr>
+          </thead>
+          <tbody>${linhas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  // ========== RESUMO ==========
+  function renderizarResumo() {
+    const despesas = DB.financeiros.totalDespesas();
+    const receitas = DB.financeiros.totalReceitas();
+    const saldo = receitas - despesas;
+    const ativos = DB.animais.listar({ status: 'ativo' });
+    const media = ativos.length > 0 ? despesas / ativos.length : 0;
+
+    document.getElementById('resumo-cards').innerHTML = `
+      <div class="resumo-card">
+        <div style="font-size:1.8rem">📉</div>
+        <div class="valor" style="color:var(--vermelho)">${formatarMoeda(despesas)}</div>
+        <div class="label">Total Despesas</div>
+      </div>
+      <div class="resumo-card">
+        <div style="font-size:1.8rem">📈</div>
+        <div class="valor" style="color:var(--verde)">${formatarMoeda(receitas)}</div>
+        <div class="label">Total Receitas</div>
+      </div>
+      <div class="resumo-card">
+        <div style="font-size:1.8rem">💰</div>
+        <div class="valor" style="color:${saldo >= 0 ? 'var(--verde)' : 'var(--vermelho)'}">${formatarMoeda(saldo)}</div>
+        <div class="label">Saldo</div>
+      </div>
+      <div class="resumo-card">
+        <div style="font-size:1.8rem">🐄</div>
+        <div class="valor">${formatarMoeda(media)}</div>
+        <div class="label">Custo Médio/Cabeça</div>
+      </div>`;
+
+    // Gráfico por categoria
+    const financeiros = DB.financeiros.listar().filter(f => f.tipo === 'despesa');
+    const porCategoria = {};
+    financeiros.forEach(f => {
+      const cat = f.categoria || 'Outros';
+      porCategoria[cat] = (porCategoria[cat] || 0) + (parseFloat(f.valor) || 0);
+    });
+
+    const labels = Object.keys(porCategoria);
+    const valores = Object.values(porCategoria);
+    const canvas = document.getElementById('grafico-categorias');
+
+    if (labels.length === 0) {
+      canvas.parentElement.innerHTML = '<p style="text-align:center;color:var(--cinza);padding:40px">Sem despesas registradas.</p>';
+    } else {
+      if (grafCat) grafCat.destroy();
+      grafCat = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: valores,
+            backgroundColor: [
+              '#C62828','#1565C0','#2E7D32','#F9A825','#6A1B9A',
+              '#E65100','#00838F','#558B2F','#4E342E','#37474F',
+              '#880E4F','#1A237E','#01579B','#004D40','#827717'
+            ],
+            borderWidth: 2, borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 12 } } }
+        }
+      });
+
+      // Top categorias
+      const sorted = labels.map((l, i) => ({ label: l, valor: valores[i] }))
+        .sort((a, b) => b.valor - a.valor).slice(0, 8);
+      const maxVal = sorted[0].valor || 1;
+      document.getElementById('top-categorias').innerHTML = sorted.map(c => {
+        const pct = Math.round((c.valor / maxVal) * 100);
+        return `
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:3px">
+              <span>${c.label}</span>
+              <strong>${formatarMoeda(c.valor)}</strong>
+            </div>
+            <div class="custo-bar"><div class="custo-bar-fill" style="width:${pct}%;background:var(--vermelho)"></div></div>
+          </div>`;
+      }).join('');
+    }
+  }
+
+  // ========== MODAL ==========
+  function abrirModalNovo() {
+    document.getElementById('modal-fin-titulo').textContent = '💰 Novo Lançamento';
+    document.getElementById('form-lancamento').reset();
+    document.getElementById('fin-id').value = '';
+    document.getElementById('fin-data').value = new Date().toISOString().split('T')[0];
+    document.querySelector('input[name="alocacao"][value="individual"]').checked = true;
+    alternarAlocacao();
+    preencherSelectAnimais('fin-animal-id');
+    preencherSelectLotes('fin-lote-id');
+    abrirModal('modal-lancamento');
+  }
+
+  function editarLancamento(id) {
+    const f = DB.financeiros.buscarPorId(id);
+    if (!f) return;
+    document.getElementById('modal-fin-titulo').textContent = '✏️ Editar Lançamento';
+    document.getElementById('fin-id').value = f.id;
+    document.getElementById('fin-tipo').value = f.tipo || '';
+    document.getElementById('fin-categoria').value = f.categoria || '';
+    document.getElementById('fin-descricao').value = f.descricao || '';
+    document.getElementById('fin-valor').value = f.valor || '';
+    document.getElementById('fin-data').value = f.data || '';
+    document.getElementById('fin-obs').value = f.observacoes || '';
+
+    const alocacao = f.alocacao || 'geral';
+    const radioEl = document.querySelector(`input[name="alocacao"][value="${alocacao}"]`);
+    if (radioEl) radioEl.checked = true;
+    alternarAlocacao();
+
+    preencherSelectAnimais('fin-animal-id', {}, f.animalId || '');
+    preencherSelectLotes('fin-lote-id', f.loteId || '');
+    abrirModal('modal-lancamento');
+  }
+
+  function alternarAlocacao() {
+    const alocacao = document.querySelector('input[name="alocacao"]:checked').value;
+    document.getElementById('campo-fin-animal').style.display = alocacao === 'individual' ? 'block' : 'none';
+    document.getElementById('campo-fin-lote').style.display = alocacao === 'lote' ? 'block' : 'none';
+    atualizarResultadoRateio();
+  }
+
+  function atualizarResultadoRateio() {
+    const alocacao = document.querySelector('input[name="alocacao"]:checked');
+    if (!alocacao || alocacao.value !== 'lote') {
+      document.getElementById('info-rateio').textContent = '';
+      return;
+    }
+    const loteId = document.getElementById('fin-lote-id').value;
+    const valor = parseFloat(document.getElementById('fin-valor').value) || 0;
+    if (!loteId || !valor) {
+      document.getElementById('info-rateio').textContent = '';
+      return;
+    }
+    const animaisLote = DB.lotes.animaisNoLote(loteId);
+    const qtd = animaisLote.length;
+    if (qtd === 0) {
+      document.getElementById('info-rateio').textContent = 'Lote sem animais ativos.';
+      return;
+    }
+    const valorRateado = valor / qtd;
+    document.getElementById('info-rateio').textContent =
+      `Será rateado entre ${qtd} animais: ${formatarMoeda(valorRateado)} por cabeça.`;
+  }
+
+  function atualizarCorTipo() {
+    const tipo = document.getElementById('fin-tipo').value;
+    document.getElementById('fin-tipo').style.color = tipo === 'receita' ? 'var(--verde)' : tipo === 'despesa' ? 'var(--vermelho)' : '';
+  }
+
+  // ========== SALVAR ==========
+  function salvarLancamento(e) {
+    e.preventDefault();
+    const alocacao = document.querySelector('input[name="alocacao"]:checked').value;
+    const valor = parseFloat(document.getElementById('fin-valor').value);
+    const loteId = document.getElementById('fin-lote-id').value;
+
+    const obj = {
+      id: document.getElementById('fin-id').value || undefined,
+      tipo: document.getElementById('fin-tipo').value,
+      categoria: document.getElementById('fin-categoria').value,
+      descricao: document.getElementById('fin-descricao').value.trim(),
+      valor: valor,
+      data: document.getElementById('fin-data').value,
+      alocacao: alocacao,
+      animalId: alocacao === 'individual' ? document.getElementById('fin-animal-id').value : null,
+      loteId: alocacao === 'lote' ? loteId : null,
+      observacoes: document.getElementById('fin-obs').value.trim(),
+    };
+
+    // Rateio por lote
+    if (alocacao === 'lote' && loteId) {
+      const animaisLote = DB.lotes.animaisNoLote(loteId);
+      if (animaisLote.length > 0) {
+        obj.animalIds = animaisLote.map(a => a.id);
+        obj.valorRateado = valor / animaisLote.length;
+      }
+    }
+
+    if (!obj.id) delete obj.id;
+
+    DB.financeiros.salvar(obj);
+    mostrarToast('Lançamento salvo com sucesso!', 'sucesso');
+    fecharModal('modal-lancamento');
+    renderizarLancamentos();
+    atualizarStats();
+  }
+
+  // ========== EXCLUIR ==========
+  function excluirLancamento(id) {
+    if (!confirmar('Deseja excluir este lançamento financeiro?')) return;
+    DB.financeiros.excluir(id);
+    mostrarToast('Lançamento excluído.', 'aviso');
+    renderizarLancamentos();
+    atualizarStats();
+  }
+
+  init();
+</script>
+</body>
+</html>

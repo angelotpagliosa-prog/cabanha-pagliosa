@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manejo Sanitário - Cabanha Pagliosa</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .pendencia-card {
+      background: var(--branco);
+      border-radius: var(--raio);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--sombra);
+      border-left: 4px solid var(--vermelho);
+      margin-bottom: 10px;
+    }
+    .pendencia-icone { font-size: 1.6rem; }
+    .pendencia-info { flex: 1; }
+    .pendencia-info strong { display: block; font-size: 0.95rem; }
+    .pendencia-info span { font-size: 0.82rem; color: var(--cinza); }
+    .pendencia-card.aviso { border-left-color: var(--amarelo); }
+    .checkbox-lista {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid var(--cinza-muito-claro);
+      border-radius: var(--raio-pequeno);
+      padding: 8px;
+    }
+    .checkbox-lista label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 4px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .checkbox-lista label:hover { background: var(--verde-muito-claro); }
+    .checkbox-lista input[type=checkbox] { accent-color: var(--verde); }
+    .dias-carencia {
+      display: inline-block;
+      background: var(--amarelo);
+      color: #fff;
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐄</span>
+      <h1>Cabanha Pagliosa</h1>
+      <span>Sistema de Gestão do Rebanho</span>
+    </div>
+    <div class="sidebar-nav">
+      <span class="sidebar-secao">Principal</span>
+      <a href="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="animais.html"><span class="nav-icon">🐄</span> Animais</a>
+      <a href="locais.html"><span class="nav-icon">🗺️</span> Locais e Lotes</a>
+      <a href="movimentacoes.html"><span class="nav-icon">🔄</span> Movimentações</a>
+      <span class="sidebar-secao">Reprodução</span>
+      <a href="reproducao.html"><span class="nav-icon">🧬</span> Coberturas e IATF</a>
+      <a href="nascimentos.html"><span class="nav-icon">🐣</span> Nascimentos</a>
+      <span class="sidebar-secao">Saúde</span>
+      <a href="sanitario.html" class="ativo"><span class="nav-icon">💉</span> Manejo Sanitário</a>
+      <span class="sidebar-secao">Administrativo</span>
+      <a href="financeiro.html"><span class="nav-icon">💰</span> Financeiro</a>
+      <a href="vendas.html"><span class="nav-icon">🏷️</span> Vendas</a>
+      <a href="associacoes.html"><span class="nav-icon">📋</span> Associações</a>
+      <span class="sidebar-secao">Sistema</span>
+      <a href="configuracoes.html"><span class="nav-icon">⚙️</span> Configurações</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo">💉 Manejo Sanitário</div>
+      <div class="topbar-acoes">
+        <button class="btn btn-primario" onclick="abrirModalNovo()">+ Novo Manejo</button>
+      </div>
+    </div>
+
+    <div class="pagina">
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+        <div class="stat-card verde">
+          <span class="stat-icone">💉</span>
+          <span class="stat-valor" id="st-total">0</span>
+          <span class="stat-label">Total de Manejos</span>
+        </div>
+        <div class="stat-card vermelho">
+          <span class="stat-icone">⚠️</span>
+          <span class="stat-valor" id="st-pendentes">0</span>
+          <span class="stat-label">Pendentes</span>
+        </div>
+        <div class="stat-card amarelo">
+          <span class="stat-icone">📅</span>
+          <span class="stat-valor" id="st-7dias">0</span>
+          <span class="stat-label">Próx. 7 Dias</span>
+        </div>
+        <div class="stat-card marrom">
+          <span class="stat-icone">💰</span>
+          <span class="stat-valor" id="st-custo">R$ 0</span>
+          <span class="stat-label">Custo Total</span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab ativo" onclick="trocarTab('realizados', this)">✅ Manejos Realizados</button>
+        <button class="tab" onclick="trocarTab('pendencias', this)">⚠️ Pendências</button>
+      </div>
+
+      <!-- Tab: Realizados -->
+      <div id="tab-realizados">
+        <!-- Filtros -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div class="form-grupo" style="flex:1;min-width:160px;margin:0">
+              <label class="form-label">Tipo</label>
+              <select class="form-select" id="filtro-tipo" onchange="renderizarTabela()">
+                <option value="">Todos os tipos</option>
+              </select>
+            </div>
+            <div class="form-grupo" style="flex:1;min-width:140px;margin:0">
+              <label class="form-label">Data início</label>
+              <input type="date" class="form-input" id="filtro-data-inicio" onchange="renderizarTabela()">
+            </div>
+            <div class="form-grupo" style="flex:1;min-width:140px;margin:0">
+              <label class="form-label">Data fim</label>
+              <input type="date" class="form-input" id="filtro-data-fim" onchange="renderizarTabela()">
+            </div>
+            <button class="btn btn-secundario" onclick="limparFiltros()">Limpar</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body" id="tabela-wrapper">
+            <div class="vazio">
+              <span class="vazio-icone">💉</span>
+              <p>Nenhum manejo registrado ainda.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Pendências -->
+      <div id="tab-pendencias" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-titulo">⚠️ Manejos Vencidos ou Pendentes</span>
+          </div>
+          <div class="card-body" id="lista-pendencias">
+            <div class="vazio">
+              <span class="vazio-icone">✅</span>
+              <p>Nenhuma pendência encontrada.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- NAV MOBILE -->
+<nav class="nav-mobile">
+  <ul class="nav-mobile-lista">
+    <li><a href="index.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+    <li><a href="animais.html"><span class="nav-icon">🐄</span>Animais</a></li>
+    <li><a href="reproducao.html"><span class="nav-icon">🧬</span>Reprodução</a></li>
+    <li><a href="sanitario.html" class="ativo"><span class="nav-icon">💉</span>Saúde</a></li>
+    <li><a href="financeiro.html"><span class="nav-icon">💰</span>Financeiro</a></li>
+  </ul>
+</nav>
+
+<!-- MODAL NOVO MANEJO -->
+<div class="modal-overlay" id="modal-manejo">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <span class="modal-titulo" id="modal-titulo">💉 Novo Manejo Sanitário</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-manejo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-manejo" onsubmit="salvarManejo(event)">
+        <input type="hidden" id="manejo-id">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-grupo">
+            <label class="form-label">Tipo *</label>
+            <select class="form-select" id="manejo-tipo" required>
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Produto / Vacina / Medicamento *</label>
+            <input type="text" class="form-input" id="manejo-produto" required placeholder="Nome do produto">
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Dose</label>
+            <input type="text" class="form-input" id="manejo-dose" placeholder="Ex: 2ml/animal">
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Via de Aplicação</label>
+            <input type="text" class="form-input" id="manejo-via" placeholder="Ex: Subcutânea, Oral">
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Data de Aplicação *</label>
+            <input type="date" class="form-input" id="manejo-data" required>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Próxima Aplicação</label>
+            <input type="date" class="form-input" id="manejo-proxima">
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Período de Carência (dias)</label>
+            <input type="number" class="form-input" id="manejo-carencia" min="0" placeholder="0">
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Custo Total (R$)</label>
+            <input type="number" class="form-input" id="manejo-custo" min="0" step="0.01" placeholder="0,00">
+          </div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Veterinário Responsável</label>
+          <input type="text" class="form-input" id="manejo-veterinario" placeholder="Nome do veterinário">
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Forma de Aplicação *</label>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="forma-aplicacao" value="individual" onchange="alternarFormaAplicacao()" checked> Individual
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="forma-aplicacao" value="lote" onchange="alternarFormaAplicacao()"> Por Lote
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="forma-aplicacao" value="geral" onchange="alternarFormaAplicacao()"> Geral (todos ativos)
+            </label>
+          </div>
+        </div>
+
+        <!-- Individual: checkboxes de animais -->
+        <div id="campo-animais" class="form-grupo">
+          <label class="form-label">Animais Envolvidos *</label>
+          <div style="margin-bottom:6px;display:flex;gap:8px">
+            <input type="text" class="form-input" id="busca-animal-san" placeholder="Buscar animal..." oninput="filtrarCheckboxAnimais()" style="flex:1">
+            <button type="button" class="btn btn-sm btn-secundario" onclick="marcarTodosAnimais(true)">Todos</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="marcarTodosAnimais(false)">Nenhum</button>
+          </div>
+          <div class="checkbox-lista" id="lista-checkboxes-animais"></div>
+        </div>
+
+        <!-- Por Lote -->
+        <div id="campo-lote" class="form-grupo" style="display:none">
+          <label class="form-label">Lote *</label>
+          <select class="form-select" id="manejo-lote-id">
+            <option value="">Selecione o lote...</option>
+          </select>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Observações</label>
+          <textarea class="form-textarea" id="manejo-obs" rows="3" placeholder="Observações adicionais..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modal-manejo')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">💾 Salvar Manejo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  let manejoEditandoId = null;
+  let todosAnimaisCache = [];
+
+  // ========== INICIALIZAÇÃO ==========
+  function init() {
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('manejo-data').value = hoje;
+
+    // Preencher select de tipos
+    preencherSelect('filtro-tipo', TIPOS_SANITARIO);
+    preencherSelect('manejo-tipo', TIPOS_SANITARIO);
+    preencherSelectLotes('manejo-lote-id');
+
+    todosAnimaisCache = DB.animais.listar({ status: 'ativo' });
+    renderizarCheckboxAnimais(todosAnimaisCache);
+
+    renderizarTabela();
+    renderizarPendencias();
+    atualizarStats();
+
+    // Abrir modal se vier ?novo=1 na URL
+    if (location.search.includes('novo=1')) abrirModalNovo();
+  }
+
+  // ========== STATS ==========
+  function atualizarStats() {
+    const lista = DB.sanitarios.listar();
+    const pendentes = DB.sanitarios.pendentes();
+    const hoje = new Date();
+    const seteDias = new Date(hoje);
+    seteDias.setDate(hoje.getDate() + 7);
+    const seteDiasStr = seteDias.toISOString().split('T')[0];
+    const hojeStr = hoje.toISOString().split('T')[0];
+
+    const prox7 = lista.filter(s =>
+      s.proximaAplicacao && s.proximaAplicacao > hojeStr && s.proximaAplicacao <= seteDiasStr
+    );
+    const custoTotal = lista.reduce((sum, s) => sum + (parseFloat(s.custo) || 0), 0);
+
+    document.getElementById('st-total').textContent = lista.length;
+    document.getElementById('st-pendentes').textContent = pendentes.length;
+    document.getElementById('st-7dias').textContent = prox7.length;
+    document.getElementById('st-custo').textContent = formatarMoeda(custoTotal);
+  }
+
+  // ========== TABS ==========
+  function trocarTab(tab, btn) {
+    document.getElementById('tab-realizados').style.display = tab === 'realizados' ? 'block' : 'none';
+    document.getElementById('tab-pendencias').style.display = tab === 'pendencias' ? 'block' : 'none';
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+    btn.classList.add('ativo');
+  }
+
+  // ========== TABELA DE MANEJOS ==========
+  function renderizarTabela() {
+    const tipo = document.getElementById('filtro-tipo').value;
+    const dataInicio = document.getElementById('filtro-data-inicio').value;
+    const dataFim = document.getElementById('filtro-data-fim').value;
+
+    let lista = DB.sanitarios.listar();
+    if (tipo) lista = lista.filter(s => s.tipo === tipo);
+    if (dataInicio) lista = lista.filter(s => s.dataAplicacao >= dataInicio);
+    if (dataFim) lista = lista.filter(s => s.dataAplicacao <= dataFim);
+
+    const wrapper = document.getElementById('tabela-wrapper');
+    if (lista.length === 0) {
+      wrapper.innerHTML = `<div class="vazio"><span class="vazio-icone">💉</span><p>Nenhum manejo encontrado.</p></div>`;
+      return;
+    }
+
+    const linhas = lista.map(s => {
+      const qtdAnimais = s.formaAplicacao === 'geral'
+        ? 'Todos ativos'
+        : s.formaAplicacao === 'lote'
+          ? `Lote: ${nomeLote(s.loteId)}`
+          : `${(s.animalIds || []).length} animal(is)`;
+
+      const proxClass = s.proximaAplicacao && s.proximaAplicacao <= new Date().toISOString().split('T')[0]
+        ? 'style="color:var(--vermelho);font-weight:600"' : '';
+
+      return `
+        <tr>
+          <td><span class="badge badge-verde">${s.tipo || '-'}</span></td>
+          <td><strong>${s.produto || '-'}</strong>${s.dose ? '<br><small style="color:var(--cinza)">' + s.dose + '</small>' : ''}</td>
+          <td>${formatarData(s.dataAplicacao)}</td>
+          <td ${proxClass}>${s.proximaAplicacao ? formatarData(s.proximaAplicacao) : '-'}</td>
+          <td>${qtdAnimais}</td>
+          <td>${s.custo ? formatarMoeda(s.custo) : '-'}</td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-secundario" onclick="editarManejo('${s.id}')">✏️ Editar</button>
+              <button class="btn btn-sm btn-vermelho" onclick="excluirManejo('${s.id}')">🗑️</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    wrapper.innerHTML = `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Produto</th>
+              <th>Data Aplicação</th>
+              <th>Próxima Aplicação</th>
+              <th>Animais</th>
+              <th>Custo</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>${linhas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  // ========== PENDÊNCIAS ==========
+  function renderizarPendencias() {
+    const pendentes = DB.sanitarios.pendentes();
+    const container = document.getElementById('lista-pendencias');
+
+    if (pendentes.length === 0) {
+      container.innerHTML = `<div class="vazio"><span class="vazio-icone">✅</span><p>Nenhuma pendência encontrada. Tudo em dia!</p></div>`;
+      return;
+    }
+
+    const hoje = new Date().toISOString().split('T')[0];
+    container.innerHTML = pendentes.map(s => {
+      const vencido = s.proximaAplicacao < hoje;
+      const diasAtraso = vencido
+        ? Math.floor((new Date(hoje) - new Date(s.proximaAplicacao)) / 86400000)
+        : 0;
+
+      const qtd = s.formaAplicacao === 'geral'
+        ? 'Todos ativos'
+        : s.formaAplicacao === 'lote'
+          ? `Lote: ${nomeLote(s.loteId)}`
+          : `${(s.animalIds || []).length} animal(is)`;
+
+      return `
+        <div class="pendencia-card ${vencido ? '' : 'aviso'}">
+          <span class="pendencia-icone">💉</span>
+          <div class="pendencia-info">
+            <strong>${s.tipo} - ${s.produto}</strong>
+            <span>Prevista: ${formatarData(s.proximaAplicacao)}${vencido ? ` · <span style="color:var(--vermelho)">${diasAtraso} dia(s) em atraso</span>` : ''}</span>
+            <span style="display:block">Animais: ${qtd}${s.veterinario ? ' · Vet: ' + s.veterinario : ''}</span>
+          </div>
+          <button class="btn btn-sm btn-primario" onclick="editarManejo('${s.id}')">Reagendar</button>
+        </div>`;
+    }).join('');
+  }
+
+  // ========== FILTROS ==========
+  function limparFiltros() {
+    document.getElementById('filtro-tipo').value = '';
+    document.getElementById('filtro-data-inicio').value = '';
+    document.getElementById('filtro-data-fim').value = '';
+    renderizarTabela();
+  }
+
+  // ========== CHECKBOXES ANIMAIS ==========
+  function renderizarCheckboxAnimais(animais) {
+    const lista = document.getElementById('lista-checkboxes-animais');
+    if (animais.length === 0) {
+      lista.innerHTML = '<p style="color:var(--cinza);font-size:0.85rem;padding:8px">Nenhum animal ativo encontrado.</p>';
+      return;
+    }
+    lista.innerHTML = animais.map(a => `
+      <label>
+        <input type="checkbox" class="chk-animal" value="${a.id}">
+        ${a.numero || ''}${a.nome ? ' - ' + a.nome : ''}
+        ${badgeRaca(a.raca)}
+      </label>`).join('');
+  }
+
+  function filtrarCheckboxAnimais() {
+    const busca = document.getElementById('busca-animal-san').value.toLowerCase();
+    const filtrados = todosAnimaisCache.filter(a =>
+      (a.numero || '').toLowerCase().includes(busca) ||
+      (a.nome || '').toLowerCase().includes(busca) ||
+      (a.brinco || '').toLowerCase().includes(busca)
+    );
+    renderizarCheckboxAnimais(filtrados);
+  }
+
+  function marcarTodosAnimais(marcar) {
+    document.querySelectorAll('.chk-animal').forEach(chk => chk.checked = marcar);
+  }
+
+  function alternarFormaAplicacao() {
+    const forma = document.querySelector('input[name="forma-aplicacao"]:checked').value;
+    document.getElementById('campo-animais').style.display = forma === 'individual' ? 'block' : 'none';
+    document.getElementById('campo-lote').style.display = forma === 'lote' ? 'block' : 'none';
+  }
+
+  // ========== MODAL ==========
+  function abrirModalNovo() {
+    manejoEditandoId = null;
+    document.getElementById('modal-titulo').textContent = '💉 Novo Manejo Sanitário';
+    document.getElementById('form-manejo').reset();
+    document.getElementById('manejo-id').value = '';
+    document.getElementById('manejo-data').value = new Date().toISOString().split('T')[0];
+    document.querySelector('input[name="forma-aplicacao"][value="individual"]').checked = true;
+    alternarFormaAplicacao();
+    todosAnimaisCache = DB.animais.listar({ status: 'ativo' });
+    renderizarCheckboxAnimais(todosAnimaisCache);
+    preencherSelectLotes('manejo-lote-id');
+    abrirModal('modal-manejo');
+  }
+
+  function editarManejo(id) {
+    const s = DB.sanitarios.buscarPorId(id);
+    if (!s) return;
+    manejoEditandoId = id;
+    document.getElementById('modal-titulo').textContent = '✏️ Editar Manejo Sanitário';
+    document.getElementById('manejo-id').value = s.id;
+    document.getElementById('manejo-tipo').value = s.tipo || '';
+    document.getElementById('manejo-produto').value = s.produto || '';
+    document.getElementById('manejo-dose').value = s.dose || '';
+    document.getElementById('manejo-via').value = s.via || '';
+    document.getElementById('manejo-data').value = s.dataAplicacao || '';
+    document.getElementById('manejo-proxima').value = s.proximaAplicacao || '';
+    document.getElementById('manejo-carencia').value = s.carencia || '';
+    document.getElementById('manejo-veterinario').value = s.veterinario || '';
+    document.getElementById('manejo-custo').value = s.custo || '';
+    document.getElementById('manejo-obs').value = s.observacoes || '';
+
+    const forma = s.formaAplicacao || 'individual';
+    document.querySelector(`input[name="forma-aplicacao"][value="${forma}"]`).checked = true;
+    alternarFormaAplicacao();
+
+    todosAnimaisCache = DB.animais.listar({ status: 'ativo' });
+    renderizarCheckboxAnimais(todosAnimaisCache);
+
+    if (forma === 'individual' && s.animalIds) {
+      s.animalIds.forEach(aid => {
+        const chk = document.querySelector(`.chk-animal[value="${aid}"]`);
+        if (chk) chk.checked = true;
+      });
+    }
+    if (forma === 'lote') {
+      preencherSelectLotes('manejo-lote-id', s.loteId);
+    }
+    abrirModal('modal-manejo');
+  }
+
+  // ========== SALVAR ==========
+  function salvarManejo(e) {
+    e.preventDefault();
+    const forma = document.querySelector('input[name="forma-aplicacao"]:checked').value;
+
+    let animalIds = [];
+    if (forma === 'individual') {
+      animalIds = Array.from(document.querySelectorAll('.chk-animal:checked')).map(c => c.value);
+      if (animalIds.length === 0) {
+        mostrarToast('Selecione ao menos um animal.', 'erro');
+        return;
+      }
+    }
+
+    const obj = {
+      id: document.getElementById('manejo-id').value || undefined,
+      tipo: document.getElementById('manejo-tipo').value,
+      produto: document.getElementById('manejo-produto').value.trim(),
+      dose: document.getElementById('manejo-dose').value.trim(),
+      via: document.getElementById('manejo-via').value.trim(),
+      dataAplicacao: document.getElementById('manejo-data').value,
+      proximaAplicacao: document.getElementById('manejo-proxima').value || null,
+      carencia: parseInt(document.getElementById('manejo-carencia').value) || 0,
+      veterinario: document.getElementById('manejo-veterinario').value.trim(),
+      custo: parseFloat(document.getElementById('manejo-custo').value) || 0,
+      formaAplicacao: forma,
+      animalIds: forma === 'individual' ? animalIds : [],
+      loteId: forma === 'lote' ? document.getElementById('manejo-lote-id').value : null,
+      observacoes: document.getElementById('manejo-obs').value.trim(),
+    };
+
+    if (!obj.id) delete obj.id;
+
+    DB.sanitarios.salvar(obj);
+    mostrarToast('Manejo sanitário salvo com sucesso!', 'sucesso');
+    fecharModal('modal-manejo');
+    renderizarTabela();
+    renderizarPendencias();
+    atualizarStats();
+  }
+
+  // ========== EXCLUIR ==========
+  function excluirManejo(id) {
+    if (!confirmar('Deseja excluir este manejo sanitário?')) return;
+    DB.sanitarios.excluir(id);
+    mostrarToast('Manejo excluído.', 'aviso');
+    renderizarTabela();
+    renderizarPendencias();
+    atualizarStats();
+  }
+
+  init();
+</script>
+</body>
+</html>

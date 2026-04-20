@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movimentações - Cabanha Pagliosa</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .painel-locais {
+      background: var(--branco);
+      border-radius: var(--raio);
+      box-shadow: var(--sombra);
+      padding: 0;
+      overflow: hidden;
+    }
+    .painel-locais-header {
+      background: var(--verde-escuro);
+      color: var(--branco);
+      padding: 14px 16px;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .local-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--cinza-muito-claro);
+      font-size: 0.88rem;
+    }
+    .local-item:last-child { border-bottom: none; }
+    .local-count {
+      background: var(--verde-muito-claro);
+      color: var(--verde-escuro);
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .mov-card {
+      background: var(--branco);
+      border-radius: var(--raio);
+      padding: 14px 16px;
+      box-shadow: var(--sombra);
+      margin-bottom: 10px;
+      border-left: 4px solid var(--verde);
+    }
+    .mov-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .mov-rota { font-size: 0.9rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .mov-rota .origem { color: var(--cinza); }
+    .mov-rota .seta { font-size: 1.2rem; }
+    .mov-rota .destino { color: var(--verde-escuro); font-weight: 700; }
+    .mov-meta { font-size: 0.8rem; color: var(--cinza); display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+    .checkbox-lista {
+      max-height: 220px; overflow-y: auto;
+      border: 1px solid var(--cinza-muito-claro);
+      border-radius: var(--raio-pequeno); padding: 8px;
+    }
+    .checkbox-lista label {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 4px; font-size: 0.88rem; cursor: pointer; border-radius: 4px;
+    }
+    .checkbox-lista label:hover { background: var(--verde-muito-claro); }
+    .checkbox-lista input[type=checkbox] { accent-color: var(--verde); }
+    .layout-movimentacoes { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+    @media (max-width: 900px) { .layout-movimentacoes { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐄</span>
+      <h1>Cabanha Pagliosa</h1>
+      <span>Sistema de Gestão do Rebanho</span>
+    </div>
+    <div class="sidebar-nav">
+      <span class="sidebar-secao">Principal</span>
+      <a href="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="animais.html"><span class="nav-icon">🐄</span> Animais</a>
+      <a href="locais.html"><span class="nav-icon">🗺️</span> Locais e Lotes</a>
+      <a href="movimentacoes.html" class="ativo"><span class="nav-icon">🔄</span> Movimentações</a>
+      <span class="sidebar-secao">Reprodução</span>
+      <a href="reproducao.html"><span class="nav-icon">🧬</span> Coberturas e IATF</a>
+      <a href="nascimentos.html"><span class="nav-icon">🐣</span> Nascimentos</a>
+      <span class="sidebar-secao">Saúde</span>
+      <a href="sanitario.html"><span class="nav-icon">💉</span> Manejo Sanitário</a>
+      <span class="sidebar-secao">Administrativo</span>
+      <a href="financeiro.html"><span class="nav-icon">💰</span> Financeiro</a>
+      <a href="vendas.html"><span class="nav-icon">🏷️</span> Vendas</a>
+      <a href="associacoes.html"><span class="nav-icon">📋</span> Associações</a>
+      <span class="sidebar-secao">Sistema</span>
+      <a href="configuracoes.html"><span class="nav-icon">⚙️</span> Configurações</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo">🔄 Movimentações</div>
+      <div class="topbar-acoes">
+        <button class="btn btn-primario" onclick="abrirModalNovo()">+ Nova Movimentação</button>
+      </div>
+    </div>
+
+    <div class="pagina">
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+        <div class="stat-card verde">
+          <span class="stat-icone">🔄</span>
+          <span class="stat-valor" id="st-total-mov">0</span>
+          <span class="stat-label">Total Movimentações</span>
+        </div>
+        <div class="stat-card azul">
+          <span class="stat-icone">🐄</span>
+          <span class="stat-valor" id="st-animais-movidos">0</span>
+          <span class="stat-label">Animais Movidos</span>
+        </div>
+        <div class="stat-card marrom">
+          <span class="stat-icone">📅</span>
+          <span class="stat-valor" id="st-mov-mes">0</span>
+          <span class="stat-label">Movimentações no Mês</span>
+        </div>
+        <div class="stat-card amarelo">
+          <span class="stat-icone">🗺️</span>
+          <span class="stat-valor" id="st-locais">0</span>
+          <span class="stat-label">Locais Ativos</span>
+        </div>
+      </div>
+
+      <div class="layout-movimentacoes">
+
+        <!-- Lista de movimentações -->
+        <div>
+          <div id="lista-movimentacoes">
+            <div class="vazio"><span class="vazio-icone">🔄</span><p>Nenhuma movimentação registrada.</p></div>
+          </div>
+        </div>
+
+        <!-- Painel lateral: animais por local -->
+        <div>
+          <div class="painel-locais">
+            <div class="painel-locais-header">🗺️ Animais por Local</div>
+            <div id="painel-locais-body">
+              <div class="local-item" style="color:var(--cinza)">Nenhum local cadastrado.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV MOBILE -->
+<nav class="nav-mobile">
+  <ul class="nav-mobile-lista">
+    <li><a href="index.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+    <li><a href="animais.html"><span class="nav-icon">🐄</span>Animais</a></li>
+    <li><a href="reproducao.html"><span class="nav-icon">🧬</span>Reprodução</a></li>
+    <li><a href="sanitario.html"><span class="nav-icon">💉</span>Saúde</a></li>
+    <li><a href="financeiro.html"><span class="nav-icon">💰</span>Financeiro</a></li>
+  </ul>
+</nav>
+
+<!-- MODAL MOVIMENTAÇÃO -->
+<div class="modal-overlay" id="modal-movimentacao">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <span class="modal-titulo">🔄 Nova Movimentação</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-movimentacao')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-movimentacao" onsubmit="salvarMovimentacao(event)">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-grupo">
+            <label class="form-label">Data *</label>
+            <input type="date" class="form-input" id="mov-data" required>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Tipo de Seleção *</label>
+            <select class="form-select" id="mov-tipo-selecao" onchange="alternarTipoSelecao()">
+              <option value="individual">Individual</option>
+              <option value="lote">Por Lote</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Seleção de animais individuais -->
+        <div id="campo-animais-mov" class="form-grupo">
+          <label class="form-label">Animais *</label>
+          <div style="margin-bottom:6px;display:flex;gap:8px">
+            <input type="text" class="form-input" id="busca-animal-mov" placeholder="Buscar animal..." oninput="filtrarCheckboxAnimaisMov()" style="flex:1">
+            <button type="button" class="btn btn-sm btn-secundario" onclick="marcarTodosMov(true)">Todos</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="marcarTodosMov(false)">Nenhum</button>
+          </div>
+          <div class="checkbox-lista" id="lista-checkboxes-mov"></div>
+          <p id="contagem-selecionados" style="font-size:0.82rem;color:var(--cinza);margin-top:4px">0 selecionados</p>
+        </div>
+
+        <!-- Seleção por lote -->
+        <div id="campo-lote-mov" class="form-grupo" style="display:none">
+          <label class="form-label">Lote *</label>
+          <select class="form-select" id="mov-lote-origem" onchange="contarAnimaisLote()">
+            <option value="">Selecione o lote...</option>
+          </select>
+          <p id="info-animais-lote" style="font-size:0.82rem;color:var(--cinza);margin-top:4px"></p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-grupo">
+            <label class="form-label">Local de Origem</label>
+            <select class="form-select" id="mov-local-origem">
+              <option value="">Nenhum / Não informado</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Local de Destino *</label>
+            <select class="form-select" id="mov-local-destino" required>
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Lote de Origem</label>
+            <select class="form-select" id="mov-lote-de-origem">
+              <option value="">Nenhum</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Lote de Destino</label>
+            <select class="form-select" id="mov-lote-destino">
+              <option value="">Nenhum</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Motivo / Observações</label>
+          <textarea class="form-textarea" id="mov-motivo" rows="2" placeholder="Ex: Transferência para piquete de recria, manejo, etc."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modal-movimentacao')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">🔄 Confirmar Movimentação</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  let todosAnimaisMovCache = [];
+
+  function init() {
+    document.getElementById('mov-data').value = new Date().toISOString().split('T')[0];
+    todosAnimaisMovCache = DB.animais.listar({ status: 'ativo' });
+    renderizarCheckboxAnimaisMov(todosAnimaisMovCache);
+    renderizarMovimentacoes();
+    renderizarPainelLocais();
+    atualizarStats();
+    if (location.search.includes('novo=1')) abrirModalNovo();
+  }
+
+  // ========== STATS ==========
+  function atualizarStats() {
+    const movs = DB.movimentacoes.listar();
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+
+    const movMes = movs.filter(m => {
+      const d = new Date(m.data);
+      return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+    });
+
+    let totalAnimaisMovidos = 0;
+    movs.forEach(m => {
+      totalAnimaisMovidos += (m.animalIds || []).length;
+    });
+
+    document.getElementById('st-total-mov').textContent = movs.length;
+    document.getElementById('st-animais-movidos').textContent = totalAnimaisMovidos;
+    document.getElementById('st-mov-mes').textContent = movMes.length;
+    document.getElementById('st-locais').textContent = DB.locais.listar().length;
+  }
+
+  // ========== PAINEL LOCAIS ==========
+  function renderizarPainelLocais() {
+    const locais = DB.locais.listar();
+    const body = document.getElementById('painel-locais-body');
+
+    if (locais.length === 0) {
+      body.innerHTML = '<div class="local-item" style="color:var(--cinza)">Nenhum local cadastrado.</div>';
+      return;
+    }
+
+    const animaisSemLocal = DB.animais.listar({ status: 'ativo' }).filter(a => !a.localId);
+    let html = locais.map(l => {
+      const count = DB.locais.animaisNoLocal(l.id).length;
+      return `
+        <div class="local-item">
+          <span>${l.nome}<br><small style="color:var(--cinza)">${l.tipo || ''}</small></span>
+          <span class="local-count">${count} animal(is)</span>
+        </div>`;
+    }).join('');
+
+    if (animaisSemLocal.length > 0) {
+      html += `
+        <div class="local-item" style="border-top:2px solid var(--cinza-muito-claro)">
+          <span style="color:var(--cinza)">Sem local definido</span>
+          <span class="local-count" style="background:var(--cinza-muito-claro);color:var(--cinza)">${animaisSemLocal.length}</span>
+        </div>`;
+    }
+
+    body.innerHTML = html;
+  }
+
+  // ========== LISTA DE MOVIMENTAÇÕES ==========
+  function renderizarMovimentacoes() {
+    const movs = DB.movimentacoes.listar();
+    const container = document.getElementById('lista-movimentacoes');
+
+    if (movs.length === 0) {
+      container.innerHTML = `<div class="vazio"><span class="vazio-icone">🔄</span><p>Nenhuma movimentação registrada ainda.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = movs.map(m => {
+      const origemNome = m.localOrigemId ? nomeLocal(m.localOrigemId) : 'Sem local';
+      const destinoNome = m.localDestinoId ? nomeLocal(m.localDestinoId) : '-';
+      const loteOrigemNome = m.loteOrigemId ? nomeLote(m.loteOrigemId) : null;
+      const loteDestinoNome = m.loteDestinoId ? nomeLote(m.loteDestinoId) : null;
+      const qtdAnimais = (m.animalIds || []).length;
+
+      const nomes = (m.animalIds || []).slice(0, 3).map(id => nomeAnimal(id));
+      const restoNomes = qtdAnimais > 3 ? ` +${qtdAnimais - 3} outros` : '';
+      const listaAnimais = nomes.join(', ') + restoNomes;
+
+      return `
+        <div class="mov-card">
+          <div class="mov-card-header">
+            <div>
+              <strong>${formatarData(m.data)}</strong>
+              <span style="margin-left:10px;font-size:0.82rem;color:var(--cinza)">${qtdAnimais} animal(is) movido(s)</span>
+            </div>
+            <button class="btn btn-sm btn-vermelho" onclick="excluirMovimentacao('${m.id}')">🗑️</button>
+          </div>
+          <div class="mov-rota">
+            <span class="origem">📍 ${origemNome}${loteOrigemNome ? ' / ' + loteOrigemNome : ''}</span>
+            <span class="seta">➜</span>
+            <span class="destino">📍 ${destinoNome}${loteDestinoNome ? ' / ' + loteDestinoNome : ''}</span>
+          </div>
+          <div class="mov-meta">
+            ${listaAnimais ? '<span>🐄 ' + listaAnimais + '</span>' : ''}
+            ${m.motivo ? '<span>💬 ' + m.motivo + '</span>' : ''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ========== CHECKBOX ANIMAIS ==========
+  function renderizarCheckboxAnimaisMov(animais) {
+    const lista = document.getElementById('lista-checkboxes-mov');
+    if (!lista) return;
+    if (animais.length === 0) {
+      lista.innerHTML = '<p style="color:var(--cinza);font-size:0.85rem;padding:8px">Nenhum animal ativo.</p>';
+      return;
+    }
+    lista.innerHTML = animais.map(a => `
+      <label>
+        <input type="checkbox" class="chk-animal-mov" value="${a.id}" onchange="atualizarContagemSelecionados()">
+        ${a.numero || ''}${a.nome ? ' - ' + a.nome : ''}
+        ${a.localId ? '<small style="color:var(--cinza)">(' + nomeLocal(a.localId) + ')</small>' : ''}
+      </label>`).join('');
+  }
+
+  function filtrarCheckboxAnimaisMov() {
+    const busca = document.getElementById('busca-animal-mov').value.toLowerCase();
+    const filtrados = todosAnimaisMovCache.filter(a =>
+      (a.numero || '').toLowerCase().includes(busca) ||
+      (a.nome || '').toLowerCase().includes(busca) ||
+      (a.brinco || '').toLowerCase().includes(busca)
+    );
+    renderizarCheckboxAnimaisMov(filtrados);
+  }
+
+  function marcarTodosMov(marcar) {
+    document.querySelectorAll('.chk-animal-mov').forEach(c => c.checked = marcar);
+    atualizarContagemSelecionados();
+  }
+
+  function atualizarContagemSelecionados() {
+    const total = document.querySelectorAll('.chk-animal-mov:checked').length;
+    document.getElementById('contagem-selecionados').textContent = `${total} selecionado(s)`;
+  }
+
+  function alternarTipoSelecao() {
+    const tipo = document.getElementById('mov-tipo-selecao').value;
+    document.getElementById('campo-animais-mov').style.display = tipo === 'individual' ? 'block' : 'none';
+    document.getElementById('campo-lote-mov').style.display = tipo === 'lote' ? 'block' : 'none';
+  }
+
+  function contarAnimaisLote() {
+    const loteId = document.getElementById('mov-lote-origem').value;
+    const el = document.getElementById('info-animais-lote');
+    if (!loteId) { el.textContent = ''; return; }
+    const animais = DB.lotes.animaisNoLote(loteId);
+    el.textContent = `${animais.length} animais ativos neste lote.`;
+  }
+
+  // ========== MODAL ==========
+  function abrirModalNovo() {
+    document.getElementById('form-movimentacao').reset();
+    document.getElementById('mov-data').value = new Date().toISOString().split('T')[0];
+    document.getElementById('mov-tipo-selecao').value = 'individual';
+    alternarTipoSelecao();
+    todosAnimaisMovCache = DB.animais.listar({ status: 'ativo' });
+    renderizarCheckboxAnimaisMov(todosAnimaisMovCache);
+    atualizarContagemSelecionados();
+
+    preencherSelectLocais('mov-local-origem');
+    preencherSelectLocais('mov-local-destino');
+    preencherSelectLotes('mov-lote-origem');
+    preencherSelectLotes('mov-lote-de-origem');
+    preencherSelectLotes('mov-lote-destino');
+
+    abrirModal('modal-movimentacao');
+  }
+
+  // ========== SALVAR ==========
+  function salvarMovimentacao(e) {
+    e.preventDefault();
+    const tipoSelecao = document.getElementById('mov-tipo-selecao').value;
+    let animalIds = [];
+
+    if (tipoSelecao === 'individual') {
+      animalIds = Array.from(document.querySelectorAll('.chk-animal-mov:checked')).map(c => c.value);
+      if (animalIds.length === 0) {
+        mostrarToast('Selecione ao menos um animal.', 'erro');
+        return;
+      }
+    } else {
+      const loteId = document.getElementById('mov-lote-origem').value;
+      if (!loteId) {
+        mostrarToast('Selecione um lote.', 'erro');
+        return;
+      }
+      animalIds = DB.lotes.animaisNoLote(loteId).map(a => a.id);
+      if (animalIds.length === 0) {
+        mostrarToast('Nenhum animal ativo encontrado neste lote.', 'aviso');
+        return;
+      }
+    }
+
+    const localDestinoId = document.getElementById('mov-local-destino').value;
+    const localOrigemId = document.getElementById('mov-local-origem').value;
+    const loteDestinoId = document.getElementById('mov-lote-destino').value;
+    const loteOrigemId = document.getElementById('mov-lote-de-origem').value;
+
+    const origemNome = localOrigemId ? nomeLocal(localOrigemId) : 'Sem local';
+    const destinoNome = nomeLocal(localDestinoId);
+
+    const obj = {
+      data: document.getElementById('mov-data').value,
+      tipoSelecao: tipoSelecao,
+      animalIds: animalIds,
+      localOrigemId: localOrigemId || null,
+      localDestinoId: localDestinoId,
+      loteOrigemId: loteOrigemId || null,
+      loteDestinoId: loteDestinoId || null,
+      motivo: document.getElementById('mov-motivo').value.trim(),
+    };
+
+    DB.movimentacoes.salvar(obj);
+    mostrarToast(
+      `${animalIds.length} animal(is) movido(s) de "${origemNome}" para "${destinoNome}".`,
+      'sucesso'
+    );
+    fecharModal('modal-movimentacao');
+    renderizarMovimentacoes();
+    renderizarPainelLocais();
+    atualizarStats();
+  }
+
+  // ========== EXCLUIR ==========
+  function excluirMovimentacao(id) {
+    if (!confirmar('Deseja excluir este registro de movimentação? Os animais NÃO retornarão ao local de origem automaticamente.')) return;
+    const lista = DB._get('movimentacoes').filter(m => m.id !== id);
+    DB._set('movimentacoes', lista);
+    mostrarToast('Movimentação excluída.', 'aviso');
+    renderizarMovimentacoes();
+    atualizarStats();
+  }
+
+  init();
+</script>
+</body>
+</html>

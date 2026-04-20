@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animais - Cabanha Pagliosa</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .foto-preview {
+      width: 80px; height: 80px;
+      object-fit: cover;
+      border-radius: var(--raio-pequeno);
+      border: 2px solid var(--cinza-muito-claro);
+    }
+    .historico-item {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--cinza-muito-claro);
+      font-size: 0.85rem;
+      display: flex;
+      gap: 10px;
+    }
+    .historico-data { color: var(--cinza); min-width: 80px; }
+    .pesagem-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--cinza-muito-claro);
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐄</span>
+      <h1>Cabanha Pagliosa</h1>
+      <span>Sistema de Gestão do Rebanho</span>
+    </div>
+    <div class="sidebar-nav">
+      <span class="sidebar-secao">Principal</span>
+      <a href="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="animais.html" class="ativo"><span class="nav-icon">🐄</span> Animais</a>
+      <a href="locais.html"><span class="nav-icon">🗺️</span> Locais e Lotes</a>
+      <a href="movimentacoes.html"><span class="nav-icon">🔄</span> Movimentações</a>
+      <span class="sidebar-secao">Reprodução</span>
+      <a href="reproducao.html"><span class="nav-icon">🧬</span> Coberturas e IATF</a>
+      <a href="nascimentos.html"><span class="nav-icon">🐣</span> Nascimentos</a>
+      <span class="sidebar-secao">Saúde</span>
+      <a href="sanitario.html"><span class="nav-icon">💉</span> Manejo Sanitário</a>
+      <span class="sidebar-secao">Administrativo</span>
+      <a href="financeiro.html"><span class="nav-icon">💰</span> Financeiro</a>
+      <a href="vendas.html"><span class="nav-icon">🏷️</span> Vendas</a>
+      <a href="associacoes.html"><span class="nav-icon">📋</span> Associações</a>
+      <span class="sidebar-secao">Sistema</span>
+      <a href="configuracoes.html"><span class="nav-icon">⚙️</span> Configurações</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo">🐄 Animais</div>
+      <div class="topbar-acoes">
+        <button class="btn btn-primario" onclick="abrirModalAnimal()">
+          + Novo Animal
+        </button>
+      </div>
+    </div>
+
+    <div class="pagina">
+
+      <!-- Stats rápidas -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">
+        <div class="stat-card verde"><span class="stat-icone">🐄</span><span class="stat-valor" id="st-total">0</span><span class="stat-label">Total Ativos</span></div>
+        <div class="stat-card azul"><span class="stat-icone">♂</span><span class="stat-valor" id="st-machos">0</span><span class="stat-label">Machos</span></div>
+        <div class="stat-card verde"><span class="stat-icone">♀</span><span class="stat-valor" id="st-femeas">0</span><span class="stat-label">Fêmeas</span></div>
+        <div class="stat-card amarelo"><span class="stat-icone">🤰</span><span class="stat-valor" id="st-prenhas">0</span><span class="stat-label">Prenhas</span></div>
+        <div class="stat-card marrom"><span class="stat-icone">🏷️</span><span class="stat-valor" id="st-vendidos">0</span><span class="stat-label">Vendidos</span></div>
+      </div>
+
+      <!-- Barra de busca e filtros -->
+      <div class="barra-busca">
+        <div class="campo-busca">
+          <span class="icone-busca">🔍</span>
+          <input type="text" class="form-input" id="busca" placeholder="Buscar por número, nome ou brinco...">
+        </div>
+        <select class="form-select" id="filtro-raca" style="width:auto">
+          <option value="">Todas as Raças</option>
+        </select>
+        <select class="form-select" id="filtro-sexo" style="width:auto">
+          <option value="">Todos os Sexos</option>
+          <option value="macho">Macho</option>
+          <option value="fêmea">Fêmea</option>
+        </select>
+        <select class="form-select" id="filtro-categoria" style="width:auto">
+          <option value="">Todas as Categorias</option>
+        </select>
+        <select class="form-select" id="filtro-status" style="width:auto">
+          <option value="">Todos os Status</option>
+          <option value="ativo">Ativo</option>
+          <option value="prenha">Prenha</option>
+          <option value="vendido">Vendido</option>
+          <option value="descartado">Descartado</option>
+          <option value="morto">Morto</option>
+        </select>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secundario btn-sm" id="btn-grade" onclick="setVista('grade')" title="Visualização em grade">⊞</button>
+          <button class="btn btn-secundario btn-sm" id="btn-lista" onclick="setVista('lista')" title="Visualização em lista">☰</button>
+        </div>
+      </div>
+
+      <!-- Lista de animais -->
+      <div id="animais-container"></div>
+      <div id="paginacao" class="text-center mt-16"></div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- NAV MOBILE -->
+<nav class="nav-mobile">
+  <ul class="nav-mobile-lista">
+    <li><a href="index.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+    <li><a href="animais.html" class="ativo"><span class="nav-icon">🐄</span>Animais</a></li>
+    <li><a href="reproducao.html"><span class="nav-icon">🧬</span>Reprodução</a></li>
+    <li><a href="sanitario.html"><span class="nav-icon">💉</span>Saúde</a></li>
+    <li><a href="financeiro.html"><span class="nav-icon">💰</span>Financeiro</a></li>
+  </ul>
+</nav>
+
+<!-- MODAL CADASTRO/EDIÇÃO DE ANIMAL -->
+<div class="modal-overlay" id="modal-animal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <span class="modal-titulo" id="modal-animal-titulo">🐄 Novo Animal</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-animal')">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-animal" onsubmit="salvarAnimal(event)">
+        <input type="hidden" id="animal-id">
+
+        <div class="tabs">
+          <button type="button" class="tab ativo" onclick="mudarTab(this,'tab-basico')">Dados Básicos</button>
+          <button type="button" class="tab" onclick="mudarTab(this,'tab-genealogia')">Genealogia</button>
+          <button type="button" class="tab" onclick="mudarTab(this,'tab-localizacao')">Localização</button>
+          <button type="button" class="tab" onclick="mudarTab(this,'tab-obs')">Observações</button>
+        </div>
+
+        <!-- ABA BÁSICO -->
+        <div id="tab-basico">
+          <div class="form-grid form-grid-2">
+            <div class="form-grupo">
+              <label class="form-label obrigatorio">Número / Identificação</label>
+              <input type="text" class="form-input" id="animal-numero" placeholder="Ex: 001, A-123" required>
+            </div>
+            <div class="form-grupo">
+              <label class="form-label">Nome</label>
+              <input type="text" class="form-input" id="animal-nome" placeholder="Nome do animal (opcional)">
+            </div>
+          </div>
+
+          <div class="form-grid form-grid-2">
+            <div class="form-grupo">
+              <label class="form-label">Brinco / ID Oficial</label>
+              <input type="text" class="form-input" id="animal-brinco" placeholder="Número do brinco">
+            </div>
+            <div class="form-grupo">
+              <label class="form-label obrigatorio">Raça</label>
+              <select class="form-select" id="animal-raca" required>
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid form-grid-2">
+            <div class="form-grupo">
+              <label class="form-label">Grau de Sangue</label>
+              <input type="text" class="form-input" id="animal-grau-sangue" placeholder="Ex: 3/4, 5/8, PO">
+            </div>
+            <div class="form-grupo">
+              <label class="form-label obrigatorio">Sexo</label>
+              <select class="form-select" id="animal-sexo" required>
+                <option value="">Selecione...</option>
+                <option value="macho">♂ Macho</option>
+                <option value="fêmea">♀ Fêmea</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid form-grid-2">
+            <div class="form-grupo">
+              <label class="form-label obrigatorio">Categoria</label>
+              <select class="form-select" id="animal-categoria" required>
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+            <div class="form-grupo">
+              <label class="form-label obrigatorio">Status</label>
+              <select class="form-select" id="animal-status" required>
+                <option value="ativo">Ativo</option>
+                <option value="prenha">Prenha</option>
+                <option value="em reprodução">Em Reprodução</option>
+                <option value="em recria">Em Recria</option>
+                <option value="em preparo para venda">Em Preparo para Venda</option>
+                <option value="em exposição">Em Exposição</option>
+                <option value="reservado">Reservado</option>
+                <option value="descartado">Descartado</option>
+                <option value="vendido">Vendido</option>
+                <option value="morto">Morto</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid form-grid-2">
+            <div class="form-grupo">
+              <label class="form-label">Data de Nascimento</label>
+              <input type="date" class="form-input" id="animal-nascimento">
+            </div>
+            <div class="form-grupo">
+              <label class="form-label">Idade (calculada)</label>
+              <input type="text" class="form-input" id="animal-idade" readonly placeholder="Será calculada automaticamente">
+            </div>
+          </div>
+
+          <div class="form-grupo">
+            <label class="form-label">Peso Atual (kg)</label>
+            <input type="number" class="form-input" id="animal-peso" placeholder="Peso em kg" step="0.1">
+          </div>
+        </div>
+
+        <!-- ABA GENEALOGIA -->
+        <div id="tab-genealogia" class="hidden">
+          <div class="form-grid form-grid-2">
+            <div class="form-grupo">
+              <label class="form-label">Pai (Touro)</label>
+              <input type="text" class="form-input" id="animal-pai-nome" placeholder="Nome ou número do pai">
+            </div>
+            <div class="form-grupo">
+              <label class="form-label">Brinco do Pai</label>
+              <input type="text" class="form-input" id="animal-pai-brinco" placeholder="Brinco/registro do pai">
+            </div>
+          </div>
+          <div class="form-grid form-grid-2">
+            <div class="form-grupo">
+              <label class="form-label">Mãe</label>
+              <input type="text" class="form-input" id="animal-mae-nome" placeholder="Nome ou número da mãe">
+            </div>
+            <div class="form-grupo">
+              <label class="form-label">Brinco da Mãe</label>
+              <input type="text" class="form-input" id="animal-mae-brinco" placeholder="Brinco/número da mãe">
+            </div>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Genealogia / Pedigree</label>
+            <textarea class="form-textarea" id="animal-genealogia" placeholder="Informações de pedigree, avós, bisavós..."></textarea>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Tipo de Nascimento</label>
+            <select class="form-select" id="animal-tipo-nasc">
+              <option value="">Não informado</option>
+              <option value="Monta Natural">Monta Natural</option>
+              <option value="Inseminação Artificial (IA)">Inseminação Artificial (IA)</option>
+              <option value="IATF">IATF</option>
+              <option value="TE">TE (Transferência de Embrião)</option>
+              <option value="FIV">FIV (Fertilização In Vitro)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ABA LOCALIZAÇÃO -->
+        <div id="tab-localizacao" class="hidden">
+          <div class="form-grupo">
+            <label class="form-label">Local Atual</label>
+            <select class="form-select" id="animal-local">
+              <option value="">Selecione o local...</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Lote Atual</label>
+            <select class="form-select" id="animal-lote">
+              <option value="">Selecione o lote...</option>
+            </select>
+          </div>
+          <div class="alerta alerta-info" style="margin-top:12px">
+            ℹ️ Para mover animais entre locais, use a tela de <a href="movimentacoes.html">Movimentações</a>.
+          </div>
+        </div>
+
+        <!-- ABA OBSERVAÇÕES -->
+        <div id="tab-obs" class="hidden">
+          <div class="form-grupo">
+            <label class="form-label">Previsão de Parto (se prenha)</label>
+            <input type="date" class="form-input" id="animal-previsao-parto">
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Observações Gerais</label>
+            <textarea class="form-textarea" id="animal-obs" placeholder="Observações, características, comportamento..." style="min-height:120px"></textarea>
+          </div>
+        </div>
+
+        <div class="divisor"></div>
+        <div style="display:flex;gap:12px;justify-content:flex-end">
+          <button type="button" class="btn btn-secundario" onclick="fecharModal('modal-animal')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">💾 Salvar Animal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE DO ANIMAL -->
+<div class="modal-overlay" id="modal-detalhe">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <span class="modal-titulo" id="detalhe-titulo">Animal</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-detalhe')">×</button>
+    </div>
+    <div class="modal-body" id="detalhe-corpo"></div>
+  </div>
+</div>
+
+<!-- MODAL PESAGEM -->
+<div class="modal-overlay" id="modal-pesagem">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-titulo">⚖️ Registrar Pesagem</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-pesagem')">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-pesagem" onsubmit="salvarPesagem(event)">
+        <input type="hidden" id="pesagem-animal-id">
+        <div class="form-grupo">
+          <label class="form-label obrigatorio">Data da Pesagem</label>
+          <input type="date" class="form-input" id="pesagem-data" required>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label obrigatorio">Peso (kg)</label>
+          <input type="number" class="form-input" id="pesagem-peso" required step="0.1" placeholder="Ex: 350.5">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Observações</label>
+          <input type="text" class="form-input" id="pesagem-obs" placeholder="Opcional">
+        </div>
+        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px">
+          <button type="button" class="btn btn-secundario" onclick="fecharModal('modal-pesagem')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">Salvar Pesagem</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  let vistaAtual = 'lista';
+  let paginaAtual = 1;
+  const POR_PAGINA = 20;
+
+  // ========== INICIALIZAÇÃO ==========
+  function inicializar() {
+    // Preencher filtros
+    preencherSelect('filtro-raca', RACAS);
+    preencherSelect('filtro-categoria', CATEGORIAS);
+    preencherSelect('animal-raca', RACAS);
+    preencherSelect('animal-categoria', CATEGORIAS);
+    preencherSelectLocais('animal-local');
+    preencherSelectLotes('animal-lote');
+
+    // Data nascimento -> calcular idade
+    document.getElementById('animal-nascimento').addEventListener('change', function() {
+      document.getElementById('animal-idade').value = calcularIdade(this.value);
+    });
+
+    // Eventos de filtro
+    ['busca','filtro-raca','filtro-sexo','filtro-categoria','filtro-status'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => { paginaAtual = 1; renderizarAnimais(); });
+    });
+
+    // Abrir novo animal se URL tiver ?novo=1
+    if (new URLSearchParams(location.search).get('novo') === '1') {
+      abrirModalAnimal();
+    }
+
+    atualizarStats();
+    renderizarAnimais();
+  }
+
+  // ========== STATS ==========
+  function atualizarStats() {
+    const t = DB.animais.totais();
+    document.getElementById('st-total').textContent = t.ativos;
+    document.getElementById('st-machos').textContent = t.machos;
+    document.getElementById('st-femeas').textContent = t.femeas;
+    document.getElementById('st-prenhas').textContent = DB._get('animais').filter(a => a.status === 'prenha').length;
+    document.getElementById('st-vendidos').textContent = t.vendidos;
+  }
+
+  // ========== RENDERIZAR LISTA ==========
+  function getFiltros() {
+    return {
+      busca: document.getElementById('busca').value.trim(),
+      raca: document.getElementById('filtro-raca').value,
+      sexo: document.getElementById('filtro-sexo').value,
+      categoria: document.getElementById('filtro-categoria').value,
+      status: document.getElementById('filtro-status').value,
+    };
+  }
+
+  function renderizarAnimais() {
+    const filtros = getFiltros();
+    const todos = DB.animais.listar(filtros);
+    const { dados, total, paginas } = paginar(todos, paginaAtual, POR_PAGINA);
+
+    const container = document.getElementById('animais-container');
+
+    if (todos.length === 0) {
+      container.innerHTML = `
+        <div class="vazio">
+          <span class="vazio-icone">🐄</span>
+          <p>Nenhum animal encontrado.</p>
+          <button class="btn btn-primario mt-16" onclick="abrirModalAnimal()">+ Cadastrar Primeiro Animal</button>
+        </div>`;
+      document.getElementById('paginacao').innerHTML = '';
+      return;
+    }
+
+    if (vistaAtual === 'grade') {
+      container.innerHTML = `<div class="animal-grid">${dados.map(renderizarAnimalCard).join('')}</div>`;
+    } else {
+      container.innerHTML = renderizarTabelaAnimais(dados);
+    }
+
+    renderizarPaginacao(paginas, total);
+  }
+
+  function renderizarAnimalCard(a) {
+    const local = nomeLocal(a.localId);
+    const lote = nomeLote(a.loteId);
+    return `
+      <div class="animal-card ${a.sexo === 'macho' ? 'macho' : 'femea'}" onclick="abrirDetalhe('${a.id}')">
+        <div class="animal-card-header">
+          <div>
+            <div class="animal-numero">${a.numero || '-'}</div>
+            <div class="animal-nome">${a.nome || ''}</div>
+          </div>
+          ${badgeStatus(a.status)}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">
+          ${chipSexo(a.sexo)}
+          ${badgeRaca(a.raca)}
+        </div>
+        <div class="animal-info-grid">
+          <div class="animal-info-item">
+            <div class="animal-info-label">Categoria</div>
+            <div class="animal-info-valor">${a.categoria || '-'}</div>
+          </div>
+          <div class="animal-info-item">
+            <div class="animal-info-label">Idade</div>
+            <div class="animal-info-valor">${calcularIdade(a.dataNascimento)}</div>
+          </div>
+          <div class="animal-info-item">
+            <div class="animal-info-label">Peso</div>
+            <div class="animal-info-valor">${a.pesoAtual ? a.pesoAtual + ' kg' : '-'}</div>
+          </div>
+          <div class="animal-info-item">
+            <div class="animal-info-label">Local</div>
+            <div class="animal-info-valor">${local}</div>
+          </div>
+        </div>
+        ${lote !== '-' ? `<div style="font-size:0.75rem;color:var(--cinza);margin-top:6px">🗂️ Lote: ${lote}</div>` : ''}
+      </div>`;
+  }
+
+  function renderizarTabelaAnimais(lista) {
+    const linhas = lista.map(a => `
+      <tr>
+        <td><strong>${a.numero || '-'}</strong><br><small style="color:var(--cinza)">${a.nome || ''}</small></td>
+        <td>${a.brinco || '-'}</td>
+        <td>${badgeRaca(a.raca)}</td>
+        <td>${chipSexo(a.sexo)}</td>
+        <td>${a.categoria || '-'}</td>
+        <td>${calcularIdade(a.dataNascimento)}</td>
+        <td>${a.pesoAtual ? a.pesoAtual + ' kg' : '-'}</td>
+        <td>${nomeLocal(a.localId)}</td>
+        <td>${badgeStatus(a.status)}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-sm btn-secundario" onclick="abrirDetalhe('${a.id}')">👁</button>
+            <button class="btn btn-sm btn-outline" onclick="editarAnimal('${a.id}')">✏️</button>
+            <button class="btn btn-sm btn-perigo" onclick="excluirAnimal('${a.id}')">🗑</button>
+          </div>
+        </td>
+      </tr>`).join('');
+
+    return `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Número / Nome</th>
+              <th>Brinco</th>
+              <th>Raça</th>
+              <th>Sexo</th>
+              <th>Categoria</th>
+              <th>Idade</th>
+              <th>Peso</th>
+              <th>Local</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>${linhas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderizarPaginacao(paginas, total) {
+    const pag = document.getElementById('paginacao');
+    if (paginas <= 1) { pag.innerHTML = `<small style="color:var(--cinza)">${total} animal(is) encontrado(s)</small>`; return; }
+
+    let html = `<div style="display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:16px">`;
+    html += `<small style="color:var(--cinza);margin-right:8px">${total} animais</small>`;
+    if (paginaAtual > 1) html += `<button class="btn btn-sm btn-secundario" onclick="irPagina(${paginaAtual-1})">‹ Anterior</button>`;
+    for (let i = 1; i <= paginas; i++) {
+      if (i === paginaAtual) html += `<button class="btn btn-sm btn-primario">${i}</button>`;
+      else html += `<button class="btn btn-sm btn-secundario" onclick="irPagina(${i})">${i}</button>`;
+    }
+    if (paginaAtual < paginas) html += `<button class="btn btn-sm btn-secundario" onclick="irPagina(${paginaAtual+1})">Próximo ›</button>`;
+    html += '</div>';
+    pag.innerHTML = html;
+  }
+
+  function irPagina(p) {
+    paginaAtual = p;
+    renderizarAnimais();
+    window.scrollTo(0, 0);
+  }
+
+  function setVista(v) {
+    vistaAtual = v;
+    document.getElementById('btn-grade').className = v === 'grade' ? 'btn btn-primario btn-sm' : 'btn btn-secundario btn-sm';
+    document.getElementById('btn-lista').className = v === 'lista' ? 'btn btn-primario btn-sm' : 'btn btn-secundario btn-sm';
+    renderizarAnimais();
+  }
+
+  // ========== MODAL ANIMAL ==========
+  function abrirModalAnimal(id = null) {
+    document.getElementById('form-animal').reset();
+    document.getElementById('animal-id').value = '';
+    document.getElementById('modal-animal-titulo').textContent = '🐄 Novo Animal';
+
+    preencherSelect('animal-raca', RACAS);
+    preencherSelect('animal-categoria', CATEGORIAS);
+    preencherSelectLocais('animal-local');
+    preencherSelectLotes('animal-lote');
+
+    // Resetar tabs
+    document.querySelectorAll('#modal-animal .tab').forEach((t,i) => {
+      t.className = i === 0 ? 'tab ativo' : 'tab';
+    });
+    document.querySelectorAll('#modal-animal [id^="tab-"]').forEach((t,i) => {
+      t.className = i === 0 ? '' : 'hidden';
+    });
+
+    abrirModal('modal-animal');
+  }
+
+  function editarAnimal(id) {
+    const a = DB.animais.buscarPorId(id);
+    if (!a) return;
+
+    document.getElementById('modal-animal-titulo').textContent = `✏️ Editar: ${a.numero || a.nome || 'Animal'}`;
+    document.getElementById('animal-id').value = a.id;
+
+    preencherSelect('animal-raca', RACAS, a.raca);
+    preencherSelect('animal-categoria', CATEGORIAS, a.categoria);
+    preencherSelectLocais('animal-local', a.localId);
+    preencherSelectLotes('animal-lote', a.loteId);
+
+    const campos = {
+      'animal-numero': a.numero, 'animal-nome': a.nome, 'animal-brinco': a.brinco,
+      'animal-grau-sangue': a.grauSangue, 'animal-sexo': a.sexo, 'animal-status': a.status,
+      'animal-nascimento': a.dataNascimento, 'animal-peso': a.pesoAtual,
+      'animal-pai-nome': a.paiNome, 'animal-pai-brinco': a.paiBrinco,
+      'animal-mae-nome': a.maeNome, 'animal-mae-brinco': a.maeBrinco,
+      'animal-genealogia': a.genealogia, 'animal-tipo-nasc': a.tipoNascimento,
+      'animal-previsao-parto': a.previsaoParto, 'animal-obs': a.observacoes
+    };
+
+    Object.entries(campos).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el && val !== undefined && val !== null) el.value = val;
+    });
+
+    if (a.dataNascimento) {
+      document.getElementById('animal-idade').value = calcularIdade(a.dataNascimento);
+    }
+
+    // Resetar tabs
+    document.querySelectorAll('#modal-animal .tab').forEach((t,i) => {
+      t.className = i === 0 ? 'tab ativo' : 'tab';
+    });
+    document.querySelectorAll('#modal-animal [id^="tab-"]').forEach((t,i) => {
+      t.className = i === 0 ? '' : 'hidden';
+    });
+
+    abrirModal('modal-animal');
+  }
+
+  function salvarAnimal(e) {
+    e.preventDefault();
+    const id = document.getElementById('animal-id').value;
+    const animal = {
+      id: id || undefined,
+      numero: document.getElementById('animal-numero').value.trim(),
+      nome: document.getElementById('animal-nome').value.trim(),
+      brinco: document.getElementById('animal-brinco').value.trim(),
+      raca: document.getElementById('animal-raca').value,
+      grauSangue: document.getElementById('animal-grau-sangue').value.trim(),
+      sexo: document.getElementById('animal-sexo').value,
+      categoria: document.getElementById('animal-categoria').value,
+      status: document.getElementById('animal-status').value,
+      dataNascimento: document.getElementById('animal-nascimento').value,
+      pesoAtual: parseFloat(document.getElementById('animal-peso').value) || null,
+      paiNome: document.getElementById('animal-pai-nome').value.trim(),
+      paiBrinco: document.getElementById('animal-pai-brinco').value.trim(),
+      maeNome: document.getElementById('animal-mae-nome').value.trim(),
+      maeBrinco: document.getElementById('animal-mae-brinco').value.trim(),
+      genealogia: document.getElementById('animal-genealogia').value.trim(),
+      tipoNascimento: document.getElementById('animal-tipo-nasc').value,
+      localId: document.getElementById('animal-local').value,
+      loteId: document.getElementById('animal-lote').value,
+      previsaoParto: document.getElementById('animal-previsao-parto').value,
+      observacoes: document.getElementById('animal-obs').value.trim(),
+    };
+
+    DB.animais.salvar(animal);
+    fecharModal('modal-animal');
+    mostrarToast(id ? 'Animal atualizado!' : 'Animal cadastrado!');
+    atualizarStats();
+    renderizarAnimais();
+  }
+
+  function excluirAnimal(id) {
+    const a = DB.animais.buscarPorId(id);
+    if (!a) return;
+    if (!confirmar(`Excluir o animal ${a.numero || a.nome}? Esta ação não pode ser desfeita.`)) return;
+    DB.animais.excluir(id);
+    mostrarToast('Animal excluído.', 'aviso');
+    atualizarStats();
+    renderizarAnimais();
+  }
+
+  // ========== DETALHE DO ANIMAL ==========
+  function abrirDetalhe(id) {
+    const a = DB.animais.buscarPorId(id);
+    if (!a) return;
+
+    const pesagens = DB.pesagens.listarDoAnimal(id);
+    const custo = DB.financeiros.custoDoAnimal(id);
+
+    document.getElementById('detalhe-titulo').innerHTML = `
+      🐄 ${a.numero || ''} ${a.nome ? '- ' + a.nome : ''} ${chipSexo(a.sexo)}`;
+
+    document.getElementById('detalhe-corpo').innerHTML = `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        ${badgeRaca(a.raca)} ${badgeStatus(a.status)}
+        ${a.categoria ? `<span class="badge badge-cinza">${a.categoria}</span>` : ''}
+        ${a.grauSangue ? `<span class="badge badge-amarelo">${a.grauSangue}</span>` : ''}
+      </div>
+
+      <div class="tabs">
+        <button type="button" class="tab ativo" onclick="mudarTab(this,'det-basico')">Dados</button>
+        <button type="button" class="tab" onclick="mudarTab(this,'det-genealogia')">Genealogia</button>
+        <button type="button" class="tab" onclick="mudarTab(this,'det-pesagens')">Pesagens</button>
+        <button type="button" class="tab" onclick="mudarTab(this,'det-financeiro')">Financeiro</button>
+      </div>
+
+      <div id="det-basico">
+        <div class="form-grid form-grid-2" style="gap:12px">
+          ${infoItem('🔢 Número', a.numero)}
+          ${infoItem('📛 Nome', a.nome)}
+          ${infoItem('🏷️ Brinco', a.brinco)}
+          ${infoItem('📅 Nascimento', formatarData(a.dataNascimento))}
+          ${infoItem('⏱️ Idade', calcularIdade(a.dataNascimento))}
+          ${infoItem('⚖️ Peso Atual', a.pesoAtual ? a.pesoAtual + ' kg' : '-')}
+          ${infoItem('🗺️ Local', nomeLocal(a.localId))}
+          ${infoItem('🗂️ Lote', nomeLote(a.loteId))}
+          ${infoItem('🤰 Prev. Parto', formatarData(a.previsaoParto))}
+        </div>
+        ${a.observacoes ? `<div class="alerta alerta-info mt-16">📝 ${a.observacoes}</div>` : ''}
+      </div>
+
+      <div id="det-genealogia" class="hidden">
+        <div class="form-grid form-grid-2" style="gap:12px">
+          ${infoItem('👨 Pai', a.paiNome)}
+          ${infoItem('🏷️ Brinco Pai', a.paiBrinco)}
+          ${infoItem('👩 Mãe', a.maeNome)}
+          ${infoItem('🏷️ Brinco Mãe', a.maeBrinco)}
+          ${infoItem('🧬 Tipo Nascimento', a.tipoNascimento)}
+        </div>
+        ${a.genealogia ? `<div class="mt-16"><strong>Genealogia:</strong><p style="margin-top:6px;font-size:0.875rem">${a.genealogia}</p></div>` : ''}
+      </div>
+
+      <div id="det-pesagens" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <strong>Histórico de Pesagens</strong>
+          <button class="btn btn-sm btn-primario" onclick="abrirPesagem('${id}')">+ Nova Pesagem</button>
+        </div>
+        ${pesagens.length === 0
+          ? '<p style="color:var(--cinza);text-align:center;padding:20px">Nenhuma pesagem registrada</p>'
+          : pesagens.map(p => `
+            <div class="pesagem-item">
+              <div><strong>${p.peso} kg</strong> <small style="color:var(--cinza)">${p.observacoes || ''}</small></div>
+              <div style="color:var(--cinza);font-size:0.8rem">${formatarData(p.data)}</div>
+            </div>`).join('')
+        }
+      </div>
+
+      <div id="det-financeiro" class="hidden">
+        <div class="stat-card verde" style="margin-bottom:16px">
+          <span class="stat-icone">💰</span>
+          <span class="stat-valor">${formatarMoeda(custo)}</span>
+          <span class="stat-label">Custo Acumulado</span>
+        </div>
+        <p style="font-size:0.85rem;color:var(--cinza)">
+          Para ver o histórico financeiro detalhado, acesse a tela
+          <a href="financeiro.html">Financeiro</a>.
+        </p>
+      </div>
+
+      <div class="divisor"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-outline" onclick="fecharModal('modal-detalhe');editarAnimal('${id}')">✏️ Editar</button>
+        <button class="btn btn-outline" onclick="abrirPesagem('${id}')">⚖️ Pesagem</button>
+        <a href="sanitario.html" class="btn btn-outline">💉 Sanitário</a>
+        <a href="financeiro.html" class="btn btn-outline">💰 Financeiro</a>
+        <button class="btn btn-perigo" onclick="fecharModal('modal-detalhe');excluirAnimal('${id}')">🗑️ Excluir</button>
+      </div>`;
+
+    abrirModal('modal-detalhe');
+  }
+
+  function infoItem(label, valor) {
+    return `
+      <div style="background:var(--cinza-muito-claro);padding:10px;border-radius:var(--raio-pequeno)">
+        <div style="font-size:0.75rem;color:var(--cinza)">${label}</div>
+        <div style="font-weight:600;font-size:0.9rem">${valor || '-'}</div>
+      </div>`;
+  }
+
+  // ========== PESAGEM ==========
+  function abrirPesagem(animalId) {
+    document.getElementById('pesagem-animal-id').value = animalId;
+    document.getElementById('pesagem-data').value = new Date().toISOString().split('T')[0];
+    document.getElementById('form-pesagem').reset();
+    document.getElementById('pesagem-animal-id').value = animalId;
+    document.getElementById('pesagem-data').value = new Date().toISOString().split('T')[0];
+    abrirModal('modal-pesagem');
+  }
+
+  function salvarPesagem(e) {
+    e.preventDefault();
+    DB.pesagens.salvar({
+      animalId: document.getElementById('pesagem-animal-id').value,
+      data: document.getElementById('pesagem-data').value,
+      peso: parseFloat(document.getElementById('pesagem-peso').value),
+      observacoes: document.getElementById('pesagem-obs').value,
+    });
+    fecharModal('modal-pesagem');
+    mostrarToast('Pesagem registrada!');
+    renderizarAnimais();
+  }
+
+  // ========== TABS ==========
+  function mudarTab(btn, idConteudo) {
+    const pai = btn.closest('.tabs') || btn.parentElement;
+    pai.querySelectorAll('.tab').forEach(t => t.className = 'tab');
+    btn.className = 'tab ativo';
+
+    // Encontrar todos os painéis de tab no mesmo container
+    const container = pai.nextElementSibling ? pai.parentElement : btn.closest('.modal-body') || btn.closest('.pagina');
+    container.querySelectorAll('[id^="tab-"],[id^="det-"]').forEach(p => p.className = 'hidden');
+    const painel = document.getElementById(idConteudo);
+    if (painel) painel.className = '';
+  }
+
+  inicializar();
+</script>
+</body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendas - Cabanha Pagliosa</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .resultado-lucro { color: var(--verde); font-weight: 700; }
+    .resultado-prejuizo { color: var(--vermelho); font-weight: 700; }
+    .custo-info-box {
+      background: var(--fundo);
+      border-radius: var(--raio-pequeno);
+      padding: 12px 16px;
+      margin-top: 6px;
+      display: none;
+    }
+    .custo-info-box.visivel { display: block; }
+    .custo-info-row { display: flex; justify-content: space-between; font-size: 0.88rem; padding: 3px 0; }
+    .custo-info-row.total { border-top: 1px solid var(--cinza-muito-claro); margin-top: 4px; padding-top: 6px; font-weight: 700; }
+    .badge-forma { background: var(--azul-claro); color: var(--azul); border-radius: 20px; padding: 2px 10px; font-size: 0.78rem; font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐄</span>
+      <h1>Cabanha Pagliosa</h1>
+      <span>Sistema de Gestão do Rebanho</span>
+    </div>
+    <div class="sidebar-nav">
+      <span class="sidebar-secao">Principal</span>
+      <a href="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="animais.html"><span class="nav-icon">🐄</span> Animais</a>
+      <a href="locais.html"><span class="nav-icon">🗺️</span> Locais e Lotes</a>
+      <a href="movimentacoes.html"><span class="nav-icon">🔄</span> Movimentações</a>
+      <span class="sidebar-secao">Reprodução</span>
+      <a href="reproducao.html"><span class="nav-icon">🧬</span> Coberturas e IATF</a>
+      <a href="nascimentos.html"><span class="nav-icon">🐣</span> Nascimentos</a>
+      <span class="sidebar-secao">Saúde</span>
+      <a href="sanitario.html"><span class="nav-icon">💉</span> Manejo Sanitário</a>
+      <span class="sidebar-secao">Administrativo</span>
+      <a href="financeiro.html"><span class="nav-icon">💰</span> Financeiro</a>
+      <a href="vendas.html" class="ativo"><span class="nav-icon">🏷️</span> Vendas</a>
+      <a href="associacoes.html"><span class="nav-icon">📋</span> Associações</a>
+      <span class="sidebar-secao">Sistema</span>
+      <a href="configuracoes.html"><span class="nav-icon">⚙️</span> Configurações</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo">🏷️ Vendas</div>
+      <div class="topbar-acoes">
+        <button class="btn btn-primario" onclick="abrirModalNovo()">+ Nova Venda</button>
+      </div>
+    </div>
+
+    <div class="pagina">
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+        <div class="stat-card azul">
+          <span class="stat-icone">🏷️</span>
+          <span class="stat-valor" id="st-total-vendas">0</span>
+          <span class="stat-label">Total Vendas</span>
+        </div>
+        <div class="stat-card verde">
+          <span class="stat-icone">💵</span>
+          <span class="stat-valor" id="st-receita">R$ 0</span>
+          <span class="stat-label">Receita Total</span>
+        </div>
+        <div class="stat-card vermelho">
+          <span class="stat-icone">📉</span>
+          <span class="stat-valor" id="st-custo-vendidos">R$ 0</span>
+          <span class="stat-label">Custo dos Vendidos</span>
+        </div>
+        <div class="stat-card verde">
+          <span class="stat-icone">📊</span>
+          <span class="stat-valor" id="st-resultado">R$ 0</span>
+          <span class="stat-label">Lucro / Prejuízo</span>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="form-grupo" style="flex:1;min-width:160px;margin:0">
+            <label class="form-label">Comprador</label>
+            <input type="text" class="form-input" id="filtro-comprador" placeholder="Nome do comprador..." oninput="renderizarVendas()">
+          </div>
+          <div class="form-grupo" style="flex:1;min-width:130px;margin:0">
+            <label class="form-label">Data início</label>
+            <input type="date" class="form-input" id="filtro-data-v-i" onchange="renderizarVendas()">
+          </div>
+          <div class="form-grupo" style="flex:1;min-width:130px;margin:0">
+            <label class="form-label">Data fim</label>
+            <input type="date" class="form-input" id="filtro-data-v-f" onchange="renderizarVendas()">
+          </div>
+          <button class="btn btn-secundario" onclick="limparFiltros()">Limpar</button>
+        </div>
+      </div>
+
+      <!-- Tabela de Vendas -->
+      <div class="card">
+        <div class="card-body" id="tabela-vendas-wrapper">
+          <div class="vazio"><span class="vazio-icone">🏷️</span><p>Nenhuma venda registrada ainda.</p></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- NAV MOBILE -->
+<nav class="nav-mobile">
+  <ul class="nav-mobile-lista">
+    <li><a href="index.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+    <li><a href="animais.html"><span class="nav-icon">🐄</span>Animais</a></li>
+    <li><a href="reproducao.html"><span class="nav-icon">🧬</span>Reprodução</a></li>
+    <li><a href="sanitario.html"><span class="nav-icon">💉</span>Saúde</a></li>
+    <li><a href="financeiro.html"><span class="nav-icon">💰</span>Financeiro</a></li>
+  </ul>
+</nav>
+
+<!-- MODAL NOVA VENDA -->
+<div class="modal-overlay" id="modal-venda">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header">
+      <span class="modal-titulo" id="modal-venda-titulo">🏷️ Nova Venda</span>
+      <button class="modal-fechar" onclick="fecharModal('modal-venda')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-venda" onsubmit="salvarVenda(event)">
+        <input type="hidden" id="venda-id">
+
+        <div class="form-grupo">
+          <label class="form-label">Animal *</label>
+          <select class="form-select" id="venda-animal-id" required onchange="carregarCustoAnimal()">
+            <option value="">Selecione o animal...</option>
+          </select>
+        </div>
+
+        <!-- Box de custo do animal -->
+        <div class="custo-info-box" id="custo-info-box">
+          <div class="custo-info-row">
+            <span>Animal selecionado:</span>
+            <span id="info-nome-animal">-</span>
+          </div>
+          <div class="custo-info-row">
+            <span>Raça / Categoria:</span>
+            <span id="info-raca-animal">-</span>
+          </div>
+          <div class="custo-info-row">
+            <span>Custo acumulado:</span>
+            <span id="info-custo-animal" style="color:var(--vermelho)">R$ 0,00</span>
+          </div>
+          <div class="custo-info-row">
+            <span>Valor de venda:</span>
+            <span id="info-valor-venda">R$ 0,00</span>
+          </div>
+          <div class="custo-info-row total">
+            <span>Resultado estimado:</span>
+            <span id="info-resultado">R$ 0,00</span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+          <div class="form-grupo">
+            <label class="form-label">Data da Venda *</label>
+            <input type="date" class="form-input" id="venda-data" required>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Forma de Pagamento *</label>
+            <select class="form-select" id="venda-forma-pag" required>
+              <option value="">Selecione...</option>
+              <option value="Dinheiro">Dinheiro</option>
+              <option value="PIX">PIX</option>
+              <option value="Cheque">Cheque</option>
+              <option value="Financiado">Financiado</option>
+              <option value="Leilão">Leilão</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="form-grupo" style="grid-column:span 2">
+            <label class="form-label">Comprador *</label>
+            <input type="text" class="form-input" id="venda-comprador" required placeholder="Nome do comprador">
+          </div>
+          <div class="form-grupo" style="grid-column:span 2">
+            <label class="form-label">Valor de Venda (R$) *</label>
+            <input type="number" class="form-input" id="venda-valor" required min="0.01" step="0.01" placeholder="0,00" oninput="atualizarResultadoEstimado()">
+          </div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Observações</label>
+          <textarea class="form-textarea" id="venda-obs" rows="2" placeholder="Observações adicionais..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modal-venda')">Cancelar</button>
+          <button type="submit" class="btn btn-primario">💾 Registrar Venda</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  let custoAnimalAtual = 0;
+
+  function init() {
+    document.getElementById('venda-data').value = new Date().toISOString().split('T')[0];
+    renderizarVendas();
+    atualizarStats();
+    if (location.search.includes('novo=1')) abrirModalNovo();
+  }
+
+  // ========== STATS ==========
+  function atualizarStats() {
+    const vendas = DB.vendas.listar();
+    const receita = DB.vendas.totalReceita();
+
+    let custoTotal = 0;
+    vendas.forEach(v => {
+      custoTotal += DB.financeiros.custoDoAnimal(v.animalId);
+    });
+
+    const resultado = receita - custoTotal;
+    const resultEl = document.getElementById('st-resultado');
+
+    document.getElementById('st-total-vendas').textContent = vendas.length;
+    document.getElementById('st-receita').textContent = formatarMoeda(receita);
+    document.getElementById('st-custo-vendidos').textContent = formatarMoeda(custoTotal);
+    resultEl.textContent = formatarMoeda(resultado);
+    resultEl.style.color = resultado >= 0 ? 'var(--verde)' : 'var(--vermelho)';
+  }
+
+  // ========== TABELA ==========
+  function renderizarVendas() {
+    const compradorFil = (document.getElementById('filtro-comprador').value || '').toLowerCase();
+    const dataI = document.getElementById('filtro-data-v-i').value;
+    const dataF = document.getElementById('filtro-data-v-f').value;
+
+    let lista = DB.vendas.listar();
+    if (compradorFil) lista = lista.filter(v => (v.comprador || '').toLowerCase().includes(compradorFil));
+    if (dataI) lista = lista.filter(v => v.data >= dataI);
+    if (dataF) lista = lista.filter(v => v.data <= dataF);
+
+    const wrapper = document.getElementById('tabela-vendas-wrapper');
+    if (lista.length === 0) {
+      wrapper.innerHTML = `<div class="vazio"><span class="vazio-icone">🏷️</span><p>Nenhuma venda encontrada.</p></div>`;
+      return;
+    }
+
+    const linhas = lista.map(v => {
+      const animal = DB.animais.buscarPorId(v.animalId);
+      const nomeAni = animal
+        ? `${animal.numero || ''}${animal.nome ? ' - ' + animal.nome : ''}`
+        : (v.animalId ? `[${v.animalId.substring(0, 6)}]` : '-');
+      const racaAni = animal ? badgeRaca(animal.raca) : '-';
+      const custo = DB.financeiros.custoDoAnimal(v.animalId);
+      const resultado = (parseFloat(v.valorVenda) || 0) - custo;
+      const resClasse = resultado >= 0 ? 'resultado-lucro' : 'resultado-prejuizo';
+      const resSinal = resultado >= 0 ? '+' : '';
+
+      return `
+        <tr>
+          <td>${formatarData(v.data)}</td>
+          <td>
+            <strong>${nomeAni}</strong><br>
+            ${racaAni}
+          </td>
+          <td>${v.comprador || '-'}</td>
+          <td style="font-weight:700;color:var(--verde)">${formatarMoeda(v.valorVenda)}</td>
+          <td style="color:var(--vermelho)">${formatarMoeda(custo)}</td>
+          <td class="${resClasse}">${resSinal}${formatarMoeda(resultado)}</td>
+          <td><span class="badge-forma">${v.formaPagamento || '-'}</span></td>
+          <td>
+            <button class="btn btn-sm btn-vermelho" onclick="excluirVenda('${v.id}')">🗑️</button>
+          </td>
+        </tr>`;
+    }).join('');
+
+    wrapper.innerHTML = `
+      <div class="tabela-wrapper">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Animal</th>
+              <th>Comprador</th>
+              <th>Valor Venda</th>
+              <th>Custo Acum.</th>
+              <th>Resultado</th>
+              <th>Pagamento</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>${linhas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function limparFiltros() {
+    document.getElementById('filtro-comprador').value = '';
+    document.getElementById('filtro-data-v-i').value = '';
+    document.getElementById('filtro-data-v-f').value = '';
+    renderizarVendas();
+  }
+
+  // ========== MODAL ==========
+  function abrirModalNovo() {
+    document.getElementById('modal-venda-titulo').textContent = '🏷️ Nova Venda';
+    document.getElementById('form-venda').reset();
+    document.getElementById('venda-id').value = '';
+    document.getElementById('venda-data').value = new Date().toISOString().split('T')[0];
+    document.getElementById('custo-info-box').classList.remove('visivel');
+    custoAnimalAtual = 0;
+
+    // Somente animais ativos (não vendidos)
+    const animaisAtivos = DB.animais.listar({ status: 'ativo' });
+    const sel = document.getElementById('venda-animal-id');
+    sel.innerHTML = '<option value="">Selecione o animal...</option>';
+    animaisAtivos.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.id;
+      opt.textContent = `${a.numero || ''}${a.nome ? ' - ' + a.nome : ''} [${a.raca || ''}]`;
+      sel.appendChild(opt);
+    });
+
+    abrirModal('modal-venda');
+  }
+
+  // ========== CUSTO DO ANIMAL ==========
+  function carregarCustoAnimal() {
+    const animalId = document.getElementById('venda-animal-id').value;
+    const box = document.getElementById('custo-info-box');
+
+    if (!animalId) {
+      box.classList.remove('visivel');
+      custoAnimalAtual = 0;
+      return;
+    }
+
+    const animal = DB.animais.buscarPorId(animalId);
+    custoAnimalAtual = DB.financeiros.custoDoAnimal(animalId);
+
+    document.getElementById('info-nome-animal').textContent =
+      `${animal.numero || ''}${animal.nome ? ' - ' + animal.nome : ''}`;
+    document.getElementById('info-raca-animal').textContent =
+      `${animal.raca || '-'} / ${animal.categoria || '-'}`;
+    document.getElementById('info-custo-animal').textContent = formatarMoeda(custoAnimalAtual);
+
+    box.classList.add('visivel');
+    atualizarResultadoEstimado();
+  }
+
+  function atualizarResultadoEstimado() {
+    const valor = parseFloat(document.getElementById('venda-valor').value) || 0;
+    const resultado = valor - custoAnimalAtual;
+    const el = document.getElementById('info-resultado');
+    el.textContent = formatarMoeda(resultado);
+    el.style.color = resultado >= 0 ? 'var(--verde)' : 'var(--vermelho)';
+    document.getElementById('info-valor-venda').textContent = formatarMoeda(valor);
+  }
+
+  // ========== SALVAR ==========
+  function salvarVenda(e) {
+    e.preventDefault();
+    const obj = {
+      id: document.getElementById('venda-id').value || undefined,
+      animalId: document.getElementById('venda-animal-id').value,
+      data: document.getElementById('venda-data').value,
+      comprador: document.getElementById('venda-comprador').value.trim(),
+      valorVenda: parseFloat(document.getElementById('venda-valor').value),
+      formaPagamento: document.getElementById('venda-forma-pag').value,
+      custoAcumulado: custoAnimalAtual,
+      resultado: (parseFloat(document.getElementById('venda-valor').value) || 0) - custoAnimalAtual,
+      observacoes: document.getElementById('venda-obs').value.trim(),
+    };
+
+    if (!obj.id) delete obj.id;
+
+    DB.vendas.salvar(obj);
+    mostrarToast('Venda registrada com sucesso! Status do animal atualizado.', 'sucesso');
+    fecharModal('modal-venda');
+    renderizarVendas();
+    atualizarStats();
+  }
+
+  // ========== EXCLUIR ==========
+  function excluirVenda(id) {
+    if (!confirmar('Deseja excluir esta venda? O status do animal NÃO será revertido automaticamente.')) return;
+    DB.vendas.excluir(id);
+    mostrarToast('Venda excluída.', 'aviso');
+    renderizarVendas();
+    atualizarStats();
+  }
+
+  init();
+</script>
+</body>
+</html>

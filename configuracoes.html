@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurações - Cabanha Pagliosa</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .secao-config {
+      background: var(--branco);
+      border-radius: var(--raio);
+      box-shadow: var(--sombra);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .secao-config-header {
+      background: var(--verde-muito-claro);
+      border-bottom: 2px solid var(--verde-claro);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .secao-config-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--verde-escuro);
+      margin: 0;
+    }
+    .secao-config-body { padding: 20px; }
+    .stat-banco {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--cinza-muito-claro);
+      font-size: 0.9rem;
+    }
+    .stat-banco:last-child { border-bottom: none; }
+    .stat-banco .colecao { font-weight: 600; }
+    .stat-banco .contagem {
+      background: var(--verde-muito-claro);
+      color: var(--verde-escuro);
+      border-radius: 20px;
+      padding: 2px 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .zona-perigo {
+      border: 2px solid var(--vermelho);
+    }
+    .zona-perigo .secao-config-header {
+      background: var(--vermelho-claro);
+      border-bottom-color: var(--vermelho);
+    }
+    .zona-perigo .secao-config-header h2 { color: var(--vermelho); }
+    .import-area {
+      border: 2px dashed var(--cinza-claro);
+      border-radius: var(--raio);
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transicao);
+    }
+    .import-area:hover { border-color: var(--verde); background: var(--verde-muito-claro); }
+    .import-area input[type=file] { display: none; }
+    .import-icone { font-size: 2.5rem; margin-bottom: 8px; }
+    .import-texto { color: var(--cinza); font-size: 0.9rem; }
+    .info-backup {
+      background: var(--azul-claro);
+      border-radius: var(--raio-pequeno);
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      color: var(--azul);
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐄</span>
+      <h1>Cabanha Pagliosa</h1>
+      <span>Sistema de Gestão do Rebanho</span>
+    </div>
+    <div class="sidebar-nav">
+      <span class="sidebar-secao">Principal</span>
+      <a href="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="animais.html"><span class="nav-icon">🐄</span> Animais</a>
+      <a href="locais.html"><span class="nav-icon">🗺️</span> Locais e Lotes</a>
+      <a href="movimentacoes.html"><span class="nav-icon">🔄</span> Movimentações</a>
+      <span class="sidebar-secao">Reprodução</span>
+      <a href="reproducao.html"><span class="nav-icon">🧬</span> Coberturas e IATF</a>
+      <a href="nascimentos.html"><span class="nav-icon">🐣</span> Nascimentos</a>
+      <span class="sidebar-secao">Saúde</span>
+      <a href="sanitario.html"><span class="nav-icon">💉</span> Manejo Sanitário</a>
+      <span class="sidebar-secao">Administrativo</span>
+      <a href="financeiro.html"><span class="nav-icon">💰</span> Financeiro</a>
+      <a href="vendas.html"><span class="nav-icon">🏷️</span> Vendas</a>
+      <a href="associacoes.html"><span class="nav-icon">📋</span> Associações</a>
+      <span class="sidebar-secao">Sistema</span>
+      <a href="configuracoes.html" class="ativo"><span class="nav-icon">⚙️</span> Configurações</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo">⚙️ Configurações</div>
+    </div>
+
+    <div class="pagina">
+
+      <!-- 1. Dados da Propriedade -->
+      <div class="secao-config">
+        <div class="secao-config-header">
+          <span style="font-size:1.4rem">🏡</span>
+          <h2>Dados da Propriedade</h2>
+        </div>
+        <div class="secao-config-body">
+          <form id="form-propriedade" onsubmit="salvarPropriedade(event)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+              <div class="form-grupo">
+                <label class="form-label">Nome da Fazenda</label>
+                <input type="text" class="form-input" id="conf-nome" placeholder="Cabanha Pagliosa">
+              </div>
+              <div class="form-grupo">
+                <label class="form-label">Proprietário</label>
+                <input type="text" class="form-input" id="conf-proprietario" placeholder="Nome do proprietário">
+              </div>
+              <div class="form-grupo">
+                <label class="form-label">Município</label>
+                <input type="text" class="form-input" id="conf-municipio" placeholder="Nome do município">
+              </div>
+              <div class="form-grupo">
+                <label class="form-label">Estado</label>
+                <select class="form-select" id="conf-estado">
+                  <option value="">Selecione...</option>
+                  <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                  <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                  <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                  <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                  <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                  <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                  <option>SP</option><option>SE</option><option>TO</option>
+                </select>
+              </div>
+              <div class="form-grupo">
+                <label class="form-label">CNPJ / CPF</label>
+                <input type="text" class="form-input" id="conf-documento" placeholder="000.000.000-00">
+              </div>
+              <div class="form-grupo">
+                <label class="form-label">Área Total (ha)</label>
+                <input type="number" class="form-input" id="conf-area" min="0" step="0.1" placeholder="0,0">
+              </div>
+              <div class="form-grupo">
+                <label class="form-label">Telefone / WhatsApp</label>
+                <input type="text" class="form-input" id="conf-telefone" placeholder="(00) 00000-0000">
+              </div>
+              <div class="form-grupo">
+                <label class="form-label">E-mail</label>
+                <input type="email" class="form-input" id="conf-email" placeholder="contato@cabanha.com">
+              </div>
+            </div>
+            <div style="margin-top:16px;display:flex;justify-content:flex-end">
+              <button type="submit" class="btn btn-primario">💾 Salvar Configurações</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 2. Backup e Restauração -->
+      <div class="secao-config">
+        <div class="secao-config-header">
+          <span style="font-size:1.4rem">💾</span>
+          <h2>Backup e Restauração</h2>
+        </div>
+        <div class="secao-config-body">
+          <div class="info-backup">
+            ℹ️ Os dados são armazenados no seu navegador (localStorage). Faça backups regulares para não perder informações.
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+            <!-- Exportar -->
+            <div>
+              <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:8px;color:var(--cinza-escuro)">📤 Exportar Dados</h3>
+              <p style="font-size:0.85rem;color:var(--cinza);margin-bottom:12px">
+                Baixe um arquivo JSON com todos os dados do sistema para guardar como backup.
+              </p>
+              <button class="btn btn-primario" onclick="exportarDados()" style="width:100%">
+                ⬇️ Exportar Backup JSON
+              </button>
+              <p id="info-ultimo-backup" style="font-size:0.8rem;color:var(--cinza);margin-top:6px;text-align:center"></p>
+            </div>
+
+            <!-- Importar -->
+            <div>
+              <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:8px;color:var(--cinza-escuro)">📥 Importar Dados</h3>
+              <p style="font-size:0.85rem;color:var(--cinza);margin-bottom:12px">
+                Restaure um backup anterior. <strong style="color:var(--vermelho)">Atenção: os dados atuais serão substituídos!</strong>
+              </p>
+              <label class="import-area" for="input-import-file" onclick="">
+                <div class="import-icone">📁</div>
+                <div class="import-texto">Clique ou arraste o arquivo .json aqui</div>
+                <input type="file" id="input-import-file" accept=".json" onchange="importarDados(event)">
+              </label>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Estatísticas do Sistema -->
+      <div class="secao-config">
+        <div class="secao-config-header">
+          <span style="font-size:1.4rem">📊</span>
+          <h2>Estatísticas do Sistema</h2>
+        </div>
+        <div class="secao-config-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0" id="stats-banco">
+            <!-- Preenchido via JS -->
+          </div>
+          <div style="margin-top:16px;display:flex;justify-content:flex-end">
+            <button class="btn btn-secundario" onclick="atualizarStatsBanco()">🔄 Atualizar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Zona de Perigo -->
+      <div class="secao-config zona-perigo">
+        <div class="secao-config-header">
+          <span style="font-size:1.4rem">⚠️</span>
+          <h2>Zona de Perigo</h2>
+        </div>
+        <div class="secao-config-body">
+          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+            <div style="flex:1">
+              <h3 style="font-size:0.95rem;font-weight:700;color:var(--vermelho);margin-bottom:4px">🗑️ Limpar Todos os Dados</h3>
+              <p style="font-size:0.85rem;color:var(--cinza)">
+                Remove permanentemente todos os dados do sistema: animais, locais, movimentações, registros financeiros, vendas, nascimentos, coberturas e manejos sanitários.
+                <strong>Esta ação não pode ser desfeita.</strong>
+              </p>
+            </div>
+            <button class="btn btn-vermelho" onclick="limparTodosDados()" style="white-space:nowrap;flex-shrink:0">
+              🗑️ Limpar Todos os Dados
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- NAV MOBILE -->
+<nav class="nav-mobile">
+  <ul class="nav-mobile-lista">
+    <li><a href="index.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+    <li><a href="animais.html"><span class="nav-icon">🐄</span>Animais</a></li>
+    <li><a href="reproducao.html"><span class="nav-icon">🧬</span>Reprodução</a></li>
+    <li><a href="sanitario.html"><span class="nav-icon">💉</span>Saúde</a></li>
+    <li><a href="financeiro.html"><span class="nav-icon">💰</span>Financeiro</a></li>
+  </ul>
+</nav>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  function init() {
+    carregarPropriedade();
+    atualizarStatsBanco();
+    atualizarInfoBackup();
+  }
+
+  // ========== PROPRIEDADE ==========
+  function carregarPropriedade() {
+    try {
+      const config = JSON.parse(localStorage.getItem('cp_config') || '{}');
+      document.getElementById('conf-nome').value = config.nomeFazenda || 'Cabanha Pagliosa';
+      document.getElementById('conf-proprietario').value = config.proprietario || '';
+      document.getElementById('conf-municipio').value = config.municipio || '';
+      document.getElementById('conf-estado').value = config.estado || '';
+      document.getElementById('conf-documento').value = config.documento || '';
+      document.getElementById('conf-area').value = config.area || '';
+      document.getElementById('conf-telefone').value = config.telefone || '';
+      document.getElementById('conf-email').value = config.email || '';
+    } catch (e) {
+      console.error('Erro ao carregar configurações:', e);
+    }
+  }
+
+  function salvarPropriedade(e) {
+    e.preventDefault();
+    const dados = {
+      nomeFazenda: document.getElementById('conf-nome').value.trim() || 'Cabanha Pagliosa',
+      proprietario: document.getElementById('conf-proprietario').value.trim(),
+      municipio: document.getElementById('conf-municipio').value.trim(),
+      estado: document.getElementById('conf-estado').value,
+      documento: document.getElementById('conf-documento').value.trim(),
+      area: parseFloat(document.getElementById('conf-area').value) || null,
+      telefone: document.getElementById('conf-telefone').value.trim(),
+      email: document.getElementById('conf-email').value.trim(),
+      atualizadoEm: new Date().toISOString(),
+    };
+    localStorage.setItem('cp_config', JSON.stringify(dados));
+    mostrarToast('Configurações salvas com sucesso!', 'sucesso');
+  }
+
+  // ========== EXPORTAR ==========
+  function exportarDados() {
+    const json = DB.exportar();
+    const data = new Date().toISOString().split('T')[0];
+    const nome = `backup-cabanha-pagliosa-${data}.json`;
+    baixarArquivo(json, nome, 'application/json');
+    localStorage.setItem('cp_ultimo_backup', new Date().toISOString());
+    atualizarInfoBackup();
+    mostrarToast('Backup exportado com sucesso!', 'sucesso');
+  }
+
+  function atualizarInfoBackup() {
+    const ultimo = localStorage.getItem('cp_ultimo_backup');
+    const el = document.getElementById('info-ultimo-backup');
+    if (ultimo) {
+      el.textContent = `Último backup: ${new Date(ultimo).toLocaleString('pt-BR')}`;
+    } else {
+      el.textContent = 'Nenhum backup realizado nesta sessão.';
+    }
+  }
+
+  // ========== IMPORTAR ==========
+  function importarDados(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.json')) {
+      mostrarToast('Arquivo inválido. Selecione um arquivo .json.', 'erro');
+      event.target.value = '';
+      return;
+    }
+
+    if (!confirmar('ATENÇÃO: Importar este arquivo irá SUBSTITUIR todos os dados atuais do sistema. Esta ação não pode ser desfeita. Deseja continuar?')) {
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const jsonStr = e.target.result;
+        const sucesso = DB.importar(jsonStr);
+        if (sucesso) {
+          mostrarToast('Dados importados com sucesso! Recarregando...', 'sucesso');
+          setTimeout(() => {
+            atualizarStatsBanco();
+            event.target.value = '';
+          }, 1500);
+        } else {
+          mostrarToast('Erro ao importar. Arquivo inválido ou corrompido.', 'erro');
+          event.target.value = '';
+        }
+      } catch (err) {
+        mostrarToast('Erro ao processar o arquivo: ' + err.message, 'erro');
+        event.target.value = '';
+      }
+    };
+    reader.onerror = function() {
+      mostrarToast('Erro ao ler o arquivo.', 'erro');
+      event.target.value = '';
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+
+  // ========== STATS BANCO ==========
+  function atualizarStatsBanco() {
+    const colecoes = [
+      { chave: 'animais', nome: '🐄 Animais', icone: '🐄' },
+      { chave: 'locais', nome: '🗺️ Locais', icone: '🗺️' },
+      { chave: 'lotes', nome: '📦 Lotes', icone: '📦' },
+      { chave: 'movimentacoes', nome: '🔄 Movimentações', icone: '🔄' },
+      { chave: 'nascimentos', nome: '🐣 Nascimentos', icone: '🐣' },
+      { chave: 'coberturas', nome: '🧬 Coberturas / IATF', icone: '🧬' },
+      { chave: 'sanitarios', nome: '💉 Manejos Sanitários', icone: '💉' },
+      { chave: 'financeiros', nome: '💰 Lançamentos Financeiros', icone: '💰' },
+      { chave: 'vendas', nome: '🏷️ Vendas', icone: '🏷️' },
+      { chave: 'registros', nome: '📋 Registros em Associações', icone: '📋' },
+      { chave: 'pesagens', nome: '⚖️ Pesagens', icone: '⚖️' },
+      { chave: 'diagnosticos', nome: '🔬 Diagnósticos de Gestação', icone: '🔬' },
+    ];
+
+    let totalBytes = 0;
+    const htmlItens = colecoes.map((c, i) => {
+      const dados = DB._get(c.chave);
+      const qtd = dados.length;
+      const bytes = new TextEncoder().encode(JSON.stringify(dados)).length;
+      totalBytes += bytes;
+      const kb = (bytes / 1024).toFixed(1);
+      const bordaRight = i % 2 === 0 ? 'border-right:1px solid var(--cinza-muito-claro);' : '';
+      return `
+        <div class="stat-banco" style="${bordaRight}padding:12px 16px">
+          <span class="colecao">${c.nome}</span>
+          <div style="text-align:right">
+            <span class="contagem">${qtd} registros</span>
+            <div style="font-size:0.75rem;color:var(--cinza);margin-top:2px">${kb} KB</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    const totalKB = (totalBytes / 1024).toFixed(1);
+    const totalMB = (totalBytes / 1024 / 1024).toFixed(2);
+
+    document.getElementById('stats-banco').innerHTML = htmlItens + `
+      <div style="grid-column:span 2;border-top:2px solid var(--verde);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;background:var(--verde-muito-claro);border-radius:0 0 var(--raio) var(--raio)">
+        <strong style="color:var(--verde-escuro)">Total Armazenado</strong>
+        <strong style="color:var(--verde-escuro)">${totalKB} KB (${totalMB} MB)</strong>
+      </div>`;
+  }
+
+  // ========== LIMPAR DADOS ==========
+  function limparTodosDados() {
+    const conf1 = confirmar(
+      'ATENÇÃO MÁXIMA!\n\nVocê está prestes a APAGAR PERMANENTEMENTE todos os dados do sistema:\n- Todos os animais\n- Todos os locais e lotes\n- Todas as movimentações\n- Todos os registros financeiros\n- Todas as vendas\n- Todos os nascimentos e coberturas\n- Todos os manejos sanitários\n- Todos os registros de associações\n\nEsta ação NÃO pode ser desfeita!\n\nDeseja continuar?'
+    );
+    if (!conf1) return;
+
+    const conf2 = confirmar(
+      'CONFIRMAÇÃO FINAL\n\nTem ABSOLUTA certeza que deseja apagar TODOS os dados?\n\nDigite "Sim" no campo de confirmação abaixo.\n\n(Clique OK para confirmar a exclusão)'
+    );
+    if (!conf2) return;
+
+    const chaves = [
+      'cp_animais', 'cp_locais', 'cp_lotes', 'cp_movimentacoes',
+      'cp_nascimentos', 'cp_coberturas', 'cp_diagnosticos',
+      'cp_sanitarios', 'cp_financeiros', 'cp_vendas',
+      'cp_registros', 'cp_pesagens'
+    ];
+
+    chaves.forEach(k => localStorage.removeItem(k));
+    mostrarToast('Todos os dados foram apagados.', 'aviso');
+    atualizarStatsBanco();
+  }
+
+  init();
+</script>
+</body>
+</html>
